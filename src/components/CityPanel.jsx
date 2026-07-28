@@ -45,7 +45,7 @@ function CityPanel({ city }) {
       </div>
 
       {tab === 'breweries' && (
-        <BreweriesTab breweries={breweries} status={status} />
+        <BreweriesTab city={city} breweries={breweries} status={status} />
       )}
       {tab === 'crawls' && (
         <CrawlsTab city={city} breweries={breweries} breweriesStatus={status} />

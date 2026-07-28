@@ -20,9 +20,14 @@ function BreweryCard({ brewery }) {
     <div className="brewery-card">
       <div className="brewery-card__header">
         <h3 className="brewery-card__name">{brewery.name}</h3>
-        {brewery.brewery_type && (
-          <span className="brewery-card__type">{brewery.brewery_type}</span>
-        )}
+        <div className="brewery-card__badges">
+          {brewery.brewery_type && (
+            <span className="brewery-card__type">{brewery.brewery_type}</span>
+          )}
+          {brewery.source === 'custom' && (
+            <span className="brewery-card__custom-badge">Community added</span>
+          )}
+        </div>
       </div>
 
       {address && <p className="brewery-card__address">{address}</p>}
