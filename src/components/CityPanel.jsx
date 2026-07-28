@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useBreweries } from '../hooks/useBreweries'
 import BreweriesTab from './BreweriesTab'
 import CrawlsTab from './CrawlsTab'
+import MapTab from './MapTab'
 
 function CityPanel({ city }) {
   const [tab, setTab] = useState('breweries')
@@ -42,6 +43,13 @@ function CityPanel({ city }) {
         >
           Beer Crawls
         </button>
+        <button
+          type="button"
+          className={`tab-bar__button${tab === 'map' ? ' tab-bar__button--active' : ''}`}
+          onClick={() => setTab('map')}
+        >
+          Map
+        </button>
       </div>
 
       {tab === 'breweries' && (
@@ -50,6 +58,7 @@ function CityPanel({ city }) {
       {tab === 'crawls' && (
         <CrawlsTab city={city} breweries={breweries} breweriesStatus={status} />
       )}
+      {tab === 'map' && <MapTab breweries={breweries} status={status} />}
     </main>
   )
 }
