@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useBreweries } from '../hooks/useBreweries'
+import { useCrawls } from '../hooks/useCrawls'
 import BreweriesTab from './BreweriesTab'
 import CrawlsTab from './CrawlsTab'
 import MapTab from './MapTab'
@@ -7,6 +8,7 @@ import MapTab from './MapTab'
 function CityPanel({ city }) {
   const [tab, setTab] = useState('breweries')
   const { breweries, status } = useBreweries(city)
+  const { crawls, status: crawlsStatus } = useCrawls(city)
 
   useEffect(() => {
     setTab('breweries')
@@ -56,9 +58,22 @@ function CityPanel({ city }) {
         <BreweriesTab city={city} breweries={breweries} status={status} />
       )}
       {tab === 'crawls' && (
-        <CrawlsTab city={city} breweries={breweries} breweriesStatus={status} />
+        <CrawlsTab
+          city={city}
+          crawls={crawls}
+          crawlsStatus={crawlsStatus}
+          breweries={breweries}
+          breweriesStatus={status}
+        />
       )}
-      {tab === 'map' && <MapTab breweries={breweries} status={status} />}
+      {tab === 'map' && (
+        <MapTab
+          breweries={breweries}
+          status={status}
+          crawls={crawls}
+          crawlsStatus={crawlsStatus}
+        />
+      )}
     </main>
   )
 }

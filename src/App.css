@@ -424,6 +424,29 @@
 
 /* --- Map tab --- */
 
+.map-tab__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.map-tab__route-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.map-tab__route-select select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
 .map-tab__note {
   color: var(--text-muted);
   font-size: 13px;
@@ -441,4 +464,19 @@
 .map-tab__container .leaflet-container {
   height: 100%;
   width: 100%;
+}
+
+.crawl-stop-icon__inner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }

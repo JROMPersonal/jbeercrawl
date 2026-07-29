@@ -1,35 +1,12 @@
-import { useEffect, useState } from 'react'
-import { subscribeCrawlsForCity } from '../api/crawls'
-import { isFirebaseConfigured } from '../firebase'
+import { useState } from 'react'
 import CrawlCard from './CrawlCard'
 import AddCrawlForm from './AddCrawlForm'
 
-function CrawlsTab({ city, breweries, breweriesStatus }) {
-  const [crawls, setCrawls] = useState([])
-  const [status, setStatus] = useState('loading')
+function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus }) {
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
 
-  useEffect(() => {
-    if (!isFirebaseConfigured) {
-      setStatus('unconfigured')
-      return
-    }
-
-    setStatus('loading')
-    const unsubscribe = subscribeCrawlsForCity(
-      city.id,
-      (data) => {
-        setCrawls(data)
-        setStatus('ready')
-      },
-      () => setStatus('error'),
-    )
-
-    return unsubscribe
-  }, [city.id])
-
-  if (status === 'unconfigured') {
+  if (crawlsStatus === 'unconfigured') {
     return (
       <p className="city-panel__message">
         Beer Crawls need a Firestore project configured (see .env.example)
@@ -66,17 +43,17 @@ function CrawlsTab({ city, breweries, breweriesStatus }) {
         </button>
       </div>
 
-      {status === 'loading' && (
+      {crawlsStatus === 'loading' && (
         <p className="city-panel__message">Loading beer crawls…</p>
       )}
 
-      {status === 'error' && (
+      {crawlsStatus === 'error' && (
         <p className="city-panel__message">
           Couldn't load beer crawls right now. Please try again in a bit.
         </p>
       )}
 
-      {status === 'ready' && filteredCrawls.length === 0 && (
+      {crawlsStatus === 'ready' && filteredCrawls.length === 0 && (
         <p className="city-panel__message">
           {crawls.length === 0
             ? 'No beer crawls yet for this city — be the first to add one.'
@@ -84,7 +61,7 @@ function CrawlsTab({ city, breweries, breweriesStatus }) {
         </p>
       )}
 
-      {status === 'ready' && filteredCrawls.length > 0 && (
+      {crawlsStatus === 'ready' && filteredCrawls.length > 0 && (
         <div className="crawl-grid">
           {filteredCrawls.map((crawl) => (
             <CrawlCard key={crawl.id} crawl={crawl} />
