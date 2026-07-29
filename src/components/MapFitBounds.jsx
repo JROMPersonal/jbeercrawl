@@ -3,7 +3,7 @@ import { useMap } from 'react-leaflet'
 
 /**
  * Fits the map to the given bounds, but only when `triggerKey` actually
- * changes (e.g. the selected route) — not on every render, since `bounds`
+ * changes (e.g. the selected route) - not on every render, since `bounds`
  * is a freshly-computed object on every render (hovering a marker, adding a
  * stop, driving-route data resolving) and would otherwise reset the user's
  * pan/zoom constantly. Bump `triggerKey` (e.g. from an "Auto Pan" button) to
@@ -35,7 +35,7 @@ function MapFitBounds({ bounds, triggerKey }) {
     if (bounds?.isValid()) {
       map.fitBounds(bounds, { padding: [30, 30] })
     }
-    // Only re-fit when triggerKey changes — bounds is intentionally excluded
+    // Only re-fit when triggerKey changes - bounds is intentionally excluded
     // so unrelated re-renders (with a fresh-but-equivalent bounds object)
     // don't reset the user's current pan/zoom.
     // eslint-disable-next-line react-hooks/exhaustive-deps

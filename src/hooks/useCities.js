@@ -6,7 +6,7 @@ import { isFirebaseConfigured } from '../firebase'
 /**
  * Returns the built-in city list plus any admin-added custom cities.
  * Memoized so consumers get a stable array reference across re-renders
- * (only changes when the actual set of custom cities changes) — otherwise
+ * (only changes when the actual set of custom cities changes) - otherwise
  * anything that fetches data per-city on a `cities` dependency would refetch
  * on every render.
  */

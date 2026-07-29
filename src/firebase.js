@@ -23,7 +23,7 @@ const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null
 export const db = isFirebaseConfigured ? getFirestore(app) : null
 export const auth = isFirebaseConfigured ? getAuth(app) : null
 
-// Not a secret — just a fixed identifier for the single Firebase Auth user
+// Not a secret - just a fixed identifier for the single Firebase Auth user
 // that gates the admin page. Its password is set directly in the Firebase
 // console (Authentication > Users), never stored in this codebase.
 export const ADMIN_EMAIL = 'admin@jbeercrawl.local'

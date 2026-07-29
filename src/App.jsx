@@ -68,7 +68,7 @@ function App() {
           isAllCitiesMapActive={tab === 'usa-map'}
         />
         {view === 'about' ? (
-          <AboutPage />
+          <AboutPage onOpenReportForm={() => setShowReportForm(true)} />
         ) : (
           <CityPanel
             city={selectedCity}

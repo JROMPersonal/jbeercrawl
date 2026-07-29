@@ -6,7 +6,7 @@ import { isFirebaseConfigured } from '../firebase'
 /**
  * Fetches breweries for every city at once (API + community-added), for the
  * All Cities Map tab. Deferred behind `enabled` so the ~N Open Brewery DB requests
- * only fire once someone actually opens that tab, not on every page load —
+ * only fire once someone actually opens that tab, not on every page load -
  * and only fires once total (cached after), not every time the tab reopens.
  * @returns {{ breweries: Array, status: 'idle' | 'loading' | 'ready' | 'error' }}
  */
@@ -18,7 +18,7 @@ export function useAllBreweries(cities, enabled) {
   // race with it: a state-based "already fetched" flag combined with a
   // cancel-on-cleanup guard caused the first (real) fetch's result to be
   // discarded as "cancelled" while the second invocation saw the flag
-  // already set and skipped starting a new one — status got stuck loading
+  // already set and skipped starting a new one - status got stuck loading
   // forever. A ref persists across that double-invocation without being
   // part of the reactive cleanup cycle, and the fetch is intentionally left
   // to complete even if StrictMode's fake unmount fires in between.

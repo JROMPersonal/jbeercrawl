@@ -129,7 +129,7 @@ function MapTab({
 
   // Extra stops (added by clicking "+ Add to Route" on the map) can build a
   // route on top of a selected crawl, or entirely from scratch when no crawl
-  // is selected ("All Breweries (No Crawl)") — either way they're combined
+  // is selected ("All Breweries (No Crawl)") - either way they're combined
   // into one ordered stop list.
   const { stops, originalStopCount } = useMemo(() => {
     const originalStops = activeCrawl
@@ -193,7 +193,7 @@ function MapTab({
       for (const { key, result } of results) next[key] = result
 
       // Hold the loading overlay for an extra second even if OSRM responds
-      // instantly — swapping straight lines for the real driving path
+      // instantly - swapping straight lines for the real driving path
       // immediately looked like a glitch rather than a load.
       delayTimeoutId = setTimeout(() => {
         if (cancelled) return
@@ -315,13 +315,13 @@ function MapTab({
             {activeCrawl ? (
               <>
                 {extraStopIds.length} brewer{extraStopIds.length === 1 ? 'y' : 'ies'} added
-                to this route — save it as a new crawl to keep them (the original crawl
+                to this route - save it as a new crawl to keep them (the original crawl
                 isn't changed).
               </>
             ) : (
               <>
                 {extraStopIds.length} brewer{extraStopIds.length === 1 ? 'y' : 'ies'} added
-                — save them as a new JBeer Crawl.
+                - save them as a new JBeer Crawl.
               </>
             )}
           </p>

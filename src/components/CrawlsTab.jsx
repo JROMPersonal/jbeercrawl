@@ -56,7 +56,7 @@ function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus, onS
       {crawlsStatus === 'ready' && filteredCrawls.length === 0 && (
         <p className="city-panel__message">
           {crawls.length === 0
-            ? 'No JBeer Crawls yet for this city — be the first to add one.'
+            ? 'No JBeer Crawls yet for this city - be the first to add one.'
             : 'No JBeer Crawls match your search.'}
         </p>
       )}

@@ -54,7 +54,7 @@ export function useBreweries(city) {
   )
 
   // Don't block community-added breweries just because the public API had a
-  // hiccup — only show an error state if there's nothing at all to display.
+  // hiccup - only show an error state if there's nothing at all to display.
   const status =
     apiStatus === 'loading'
       ? 'loading'
