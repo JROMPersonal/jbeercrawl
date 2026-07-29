@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { updateCustomBrewery } from '../api/customBreweries'
+import { isSafeUrl } from '../utils/safeUrl'
 
 const BREWERY_TYPES = [
   'micro',
@@ -26,6 +27,11 @@ function EditBreweryForm({ brewery, onClose }) {
   const handleSubmit = async (event) => {
     event.preventDefault()
     if (!canSave) return
+
+    if (websiteUrl.trim() && !isSafeUrl(websiteUrl.trim())) {
+      setError('Website must be a valid http:// or https:// URL.')
+      return
+    }
 
     setSaving(true)
     setError(null)

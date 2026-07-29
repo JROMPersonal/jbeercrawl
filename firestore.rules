@@ -7,7 +7,10 @@ service cloud.firestore {
                     && request.resource.data.name.size() > 0
                     && request.resource.data.name.size() < 100
                     && request.resource.data.breweries is list
-                    && request.resource.data.breweries.size() > 0;
+                    && request.resource.data.breweries.size() > 0
+                    && (request.resource.data.creatorName == null
+                        || (request.resource.data.creatorName is string
+                            && request.resource.data.creatorName.size() < 100));
       allow update, delete: if request.auth != null;
     }
 
@@ -17,7 +20,20 @@ service cloud.firestore {
                     && request.resource.data.cityId.size() > 0
                     && request.resource.data.name is string
                     && request.resource.data.name.size() > 0
-                    && request.resource.data.name.size() < 150;
+                    && request.resource.data.name.size() < 150
+                    && (request.resource.data.website_url == null
+                        || (request.resource.data.website_url is string
+                            && request.resource.data.website_url.size() < 300
+                            && request.resource.data.website_url.matches('^https?://.*')))
+                    && (request.resource.data.street == null
+                        || (request.resource.data.street is string
+                            && request.resource.data.street.size() < 200))
+                    && (request.resource.data.phone == null
+                        || (request.resource.data.phone is string
+                            && request.resource.data.phone.size() < 40))
+                    && (request.resource.data.addedBy == null
+                        || (request.resource.data.addedBy is string
+                            && request.resource.data.addedBy.size() < 100));
       allow update, delete: if request.auth != null;
     }
 
@@ -27,7 +43,14 @@ service cloud.firestore {
                     && request.resource.data.name.size() > 0
                     && request.resource.data.name.size() < 100
                     && request.resource.data.stateAbbr is string
-                    && request.resource.data.stateAbbr.size() == 2;
+                    && request.resource.data.stateAbbr.size() == 2
+                    && (request.resource.data.image == null
+                        || (request.resource.data.image is string
+                            && request.resource.data.image.size() < 500
+                            && request.resource.data.image.matches('^https?://.*')))
+                    && (request.resource.data.addedBy == null
+                        || (request.resource.data.addedBy is string
+                            && request.resource.data.addedBy.size() < 100));
       allow update, delete: if request.auth != null;
     }
 
@@ -40,7 +63,13 @@ service cloud.firestore {
                       ['bug', 'update_request', 'removal_request', 'other']
                     && request.resource.data.message is string
                     && request.resource.data.message.size() > 0
-                    && request.resource.data.message.size() < 2000;
+                    && request.resource.data.message.size() < 2000
+                    && (request.resource.data.about == null
+                        || (request.resource.data.about is string
+                            && request.resource.data.about.size() < 300))
+                    && (request.resource.data.contactEmail == null
+                        || (request.resource.data.contactEmail is string
+                            && request.resource.data.contactEmail.size() < 200));
     }
   }
 }

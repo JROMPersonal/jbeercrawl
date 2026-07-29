@@ -13,6 +13,7 @@ import 'leaflet/dist/leaflet.css'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+import { isSafeUrl } from '../utils/safeUrl'
 
 // Vite doesn't serve Leaflet's default marker images correctly out of the
 // box, so point the default icon at the bundled asset URLs directly.
@@ -305,7 +306,7 @@ function MapTab({
               <Popup>
                 <strong>{brewery.name}</strong>
                 {formatAddress(brewery) && <div>{formatAddress(brewery)}</div>}
-                {brewery.website_url && (
+                {isSafeUrl(brewery.website_url) && (
                   <div>
                     <a href={brewery.website_url} target="_blank" rel="noreferrer">
                       Website ↗
@@ -328,7 +329,7 @@ function MapTab({
                   {stopNumber}. {brewery.name}
                 </strong>
                 {formatAddress(brewery) && <div>{formatAddress(brewery)}</div>}
-                {brewery.website_url && (
+                {isSafeUrl(brewery.website_url) && (
                   <div>
                     <a href={brewery.website_url} target="_blank" rel="noreferrer">
                       Website ↗

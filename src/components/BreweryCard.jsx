@@ -1,3 +1,5 @@
+import { isSafeUrl } from '../utils/safeUrl'
+
 function formatAddress(brewery) {
   const line = [brewery.street, brewery.city, brewery.state_province]
     .filter(Boolean)
@@ -38,7 +40,7 @@ function BreweryCard({ brewery }) {
             {formatPhone(brewery.phone)}
           </a>
         )}
-        {brewery.website_url && (
+        {isSafeUrl(brewery.website_url) && (
           <a href={brewery.website_url} target="_blank" rel="noreferrer">
             Website ↗
           </a>
