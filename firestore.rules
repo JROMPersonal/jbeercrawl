@@ -30,5 +30,17 @@ service cloud.firestore {
                     && request.resource.data.stateAbbr.size() == 2;
       allow update, delete: if request.auth != null;
     }
+
+    // Reports may contain a reporter's contact email, so unlike everything
+    // else in this app, they are NOT publicly readable — only the admin
+    // (signed in via Firebase Auth) can view, resolve, or delete them.
+    match /reports/{reportId} {
+      allow read, update, delete: if request.auth != null;
+      allow create: if request.resource.data.type in
+                      ['bug', 'update_request', 'removal_request', 'other']
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() > 0
+                    && request.resource.data.message.size() < 2000;
+    }
   }
 }

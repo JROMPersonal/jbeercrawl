@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { isFirebaseConfigured } from '../firebase'
 import CityCard from './CityCard'
 import AddCityForm from './AddCityForm'
+import ReportForm from './ReportForm'
 
 function CitySidebar({ cities, selectedCityId, onSelectCity }) {
   const [showAddCity, setShowAddCity] = useState(false)
+  const [showReportForm, setShowReportForm] = useState(false)
   const [search, setSearch] = useState('')
   const citiesWithCredit = cities.filter((city) => city.imageCredit)
 
@@ -55,6 +57,16 @@ function CitySidebar({ cities, selectedCityId, onSelectCity }) {
         </button>
       )}
 
+      {isFirebaseConfigured && (
+        <button
+          type="button"
+          className="city-sidebar__report-link"
+          onClick={() => setShowReportForm(true)}
+        >
+          Report an issue / suggest a change
+        </button>
+      )}
+
       {citiesWithCredit.length > 0 && (
         <p className="city-sidebar__credits">
           Photos:{' '}
@@ -75,6 +87,7 @@ function CitySidebar({ cities, selectedCityId, onSelectCity }) {
       )}
 
       {showAddCity && <AddCityForm onClose={() => setShowAddCity(false)} />}
+      {showReportForm && <ReportForm onClose={() => setShowReportForm(false)} />}
     </aside>
   )
 }

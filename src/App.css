@@ -120,6 +120,56 @@
   color: var(--text-muted);
 }
 
+.report-list {
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-bg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.report-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.report-card__type {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+
+.report-card__about {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.report-card__message {
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+.report-card__contact {
+  font-size: 13px;
+}
+
 /* --- City sidebar --- */
 
 .city-sidebar {
@@ -159,6 +209,22 @@
   color: rgba(244, 241, 236, 0.55);
   font-size: 13px;
   padding: 8px 4px;
+}
+
+.city-sidebar__report-link {
+  background: none;
+  border: none;
+  color: rgba(244, 241, 236, 0.55);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 10px;
+  padding: 0 4px;
+  text-align: left;
+}
+
+.city-sidebar__report-link:hover {
+  color: var(--sidebar-text);
 }
 
 .city-sidebar__list {
@@ -546,13 +612,20 @@
 }
 
 .field input[type='text'],
-.field select {
+.field input[type='email'],
+.field select,
+.field__textarea {
   padding: 9px 12px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
   font-size: 14px;
+}
+
+.field__textarea {
+  font-family: inherit;
+  resize: vertical;
 }
 
 .brewery-picker {

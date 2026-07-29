@@ -4,6 +4,7 @@ import { signInAdmin, signOutAdmin } from '../api/adminAuth'
 import AdminCitiesPanel from './AdminCitiesPanel'
 import AdminBreweriesPanel from './AdminBreweriesPanel'
 import AdminCrawlsPanel from './AdminCrawlsPanel'
+import AdminReportsPanel from './AdminReportsPanel'
 
 function AdminPage({ cities, onExit }) {
   const { user, status } = useAdminAuth()
@@ -100,11 +101,19 @@ function AdminPage({ cities, onExit }) {
             >
               Beer Crawls
             </button>
+            <button
+              type="button"
+              className={`tab-bar__button${tab === 'reports' ? ' tab-bar__button--active' : ''}`}
+              onClick={() => setTab('reports')}
+            >
+              Reports
+            </button>
           </div>
 
           {tab === 'cities' && <AdminCitiesPanel cities={cities} />}
           {tab === 'breweries' && <AdminBreweriesPanel cities={cities} />}
           {tab === 'crawls' && <AdminCrawlsPanel cities={cities} />}
+          {tab === 'reports' && <AdminReportsPanel />}
         </>
       )}
     </div>
