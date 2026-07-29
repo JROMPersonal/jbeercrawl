@@ -1,9 +1,12 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
+  doc,
   onSnapshot,
   query,
   serverTimestamp,
+  updateDoc,
   where,
 } from 'firebase/firestore'
 import { db } from '../firebase'
@@ -44,4 +47,20 @@ export function createCrawl(cityId, { name, creatorName, breweries }) {
     breweries,
     createdAt: serverTimestamp(),
   })
+}
+
+/**
+ * @param {string} crawlId
+ * @param {{ name: string, creatorName: string, breweries: Array<{id: string, name: string, breweryType?: string}> }} crawl
+ */
+export function updateCrawl(crawlId, { name, creatorName, breweries }) {
+  return updateDoc(doc(db, COLLECTION, crawlId), {
+    name: name.trim(),
+    creatorName: creatorName.trim() || 'Anonymous',
+    breweries,
+  })
+}
+
+export function deleteCrawl(crawlId) {
+  return deleteDoc(doc(db, COLLECTION, crawlId))
 }

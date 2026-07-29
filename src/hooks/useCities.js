@@ -15,5 +15,5 @@ export function useCities() {
     return subscribeCustomCities(setCustomCities, () => setCustomCities([]))
   }, [])
 
-  return [...staticCities, ...customCities]
+  return [...staticCities, ...customCities.map((city) => ({ ...city, isCustom: true }))]
 }

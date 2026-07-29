@@ -1,4 +1,12 @@
-import { addDoc, collection, onSnapshot, serverTimestamp } from 'firebase/firestore'
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  updateDoc,
+} from 'firebase/firestore'
 import { db } from '../firebase'
 
 const COLLECTION = 'customCities'
@@ -34,4 +42,23 @@ export function createCustomCity({ name, state, stateAbbr, image, addedBy }) {
     addedBy: addedBy?.trim() || 'Anonymous',
     createdAt: serverTimestamp(),
   })
+}
+
+/**
+ * @param {string} cityId
+ * @param {{ name: string, state: string, stateAbbr: string, image: string }} city
+ */
+export function updateCustomCity(cityId, { name, state, stateAbbr, image }) {
+  return updateDoc(doc(db, COLLECTION, cityId), {
+    name: name.trim(),
+    state: state.trim(),
+    stateAbbr: stateAbbr.trim().toUpperCase(),
+    breweryDbCity: slugify(name),
+    breweryDbState: slugify(state),
+    image: image?.trim() || null,
+  })
+}
+
+export function deleteCustomCity(cityId) {
+  return deleteDoc(doc(db, COLLECTION, cityId))
 }

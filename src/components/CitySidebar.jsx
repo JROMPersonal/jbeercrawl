@@ -5,20 +5,44 @@ import AddCityForm from './AddCityForm'
 
 function CitySidebar({ cities, selectedCityId, onSelectCity }) {
   const [showAddCity, setShowAddCity] = useState(false)
+  const [search, setSearch] = useState('')
   const citiesWithCredit = cities.filter((city) => city.imageCredit)
+
+  const query = search.trim().toLowerCase()
+  const filteredCities = query
+    ? cities.filter(
+        (city) =>
+          city.name.toLowerCase().includes(query) ||
+          city.state.toLowerCase().includes(query) ||
+          city.stateAbbr.toLowerCase().includes(query),
+      )
+    : cities
 
   return (
     <aside className="city-sidebar">
       <h1 className="city-sidebar__title">Beer Crawl Planner</h1>
+
+      <input
+        type="search"
+        className="city-sidebar__search"
+        placeholder="Search cities…"
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+      />
+
       <div className="city-sidebar__list">
-        {cities.map((city) => (
-          <CityCard
-            key={city.id}
-            city={city}
-            isSelected={city.id === selectedCityId}
-            onSelect={onSelectCity}
-          />
-        ))}
+        {filteredCities.length === 0 ? (
+          <p className="city-sidebar__no-results">No cities match your search.</p>
+        ) : (
+          filteredCities.map((city) => (
+            <CityCard
+              key={city.id}
+              city={city}
+              isSelected={city.id === selectedCityId}
+              onSelect={onSelectCity}
+            />
+          ))
+        )}
       </div>
 
       {isFirebaseConfigured && (

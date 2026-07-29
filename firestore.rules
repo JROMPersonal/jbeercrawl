@@ -8,7 +8,7 @@ service cloud.firestore {
                     && request.resource.data.name.size() < 100
                     && request.resource.data.breweries is list
                     && request.resource.data.breweries.size() > 0;
-      allow update, delete: if false;
+      allow update, delete: if request.auth != null;
     }
 
     match /customBreweries/{breweryId} {
@@ -18,7 +18,7 @@ service cloud.firestore {
                     && request.resource.data.name is string
                     && request.resource.data.name.size() > 0
                     && request.resource.data.name.size() < 150;
-      allow update, delete: if false;
+      allow update, delete: if request.auth != null;
     }
 
     match /customCities/{cityId} {
@@ -28,7 +28,7 @@ service cloud.firestore {
                     && request.resource.data.name.size() < 100
                     && request.resource.data.stateAbbr is string
                     && request.resource.data.stateAbbr.size() == 2;
-      allow update, delete: if false;
+      allow update, delete: if request.auth != null;
     }
   }
 }

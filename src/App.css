@@ -3,6 +3,123 @@
   min-height: 100svh;
 }
 
+.admin-gear-button {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  opacity: 0.3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.admin-gear-button:hover,
+.admin-gear-button:focus-visible {
+  opacity: 1;
+  background: var(--accent-bg);
+}
+
+/* --- Admin page --- */
+
+.admin-page {
+  min-height: 100svh;
+  padding: 32px 40px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.admin-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.admin-page__title {
+  font-size: 26px;
+}
+
+.admin-page__header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-login {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 320px;
+  margin-top: 40px;
+}
+
+.admin-panel__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-panel__section-title {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 24px 0 10px;
+}
+
+.admin-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-list--readonly .admin-list__row {
+  opacity: 0.65;
+}
+
+.admin-list__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-bg);
+}
+
+.admin-list__label {
+  font-size: 14px;
+}
+
+.admin-list__meta {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.admin-list__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.admin-list__confirm {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 /* --- City sidebar --- */
 
 .city-sidebar {
@@ -21,6 +138,27 @@
   font-size: 20px;
   margin-bottom: 20px;
   padding: 0 4px;
+}
+
+.city-sidebar__search {
+  width: 100%;
+  padding: 9px 12px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(244, 241, 236, 0.2);
+  background: rgba(244, 241, 236, 0.08);
+  color: var(--sidebar-text);
+  font-size: 14px;
+}
+
+.city-sidebar__search::placeholder {
+  color: rgba(244, 241, 236, 0.5);
+}
+
+.city-sidebar__no-results {
+  color: rgba(244, 241, 236, 0.55);
+  font-size: 13px;
+  padding: 8px 4px;
 }
 
 .city-sidebar__list {
@@ -273,6 +411,10 @@
   background: none;
   color: var(--text);
   border: 1px solid var(--border);
+}
+
+.button--danger {
+  background: #d1453b;
 }
 
 /* --- Beer Crawls tab --- */
