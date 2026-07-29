@@ -1,26 +1,26 @@
 import { useState } from 'react'
 import { createCrawl } from '../api/crawls'
+import BreweryPathList from './BreweryPathList'
 
 function AddCrawlForm({ cityId, breweries, breweriesStatus, onClose }) {
   const [name, setName] = useState('')
   const [creatorName, setCreatorName] = useState('')
-  const [selectedIds, setSelectedIds] = useState(() => new Set())
+  const [orderedIds, setOrderedIds] = useState([])
+  const [activeTab, setActiveTab] = useState('breweries')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
   const toggleBrewery = (id) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
-      return next
-    })
+    setOrderedIds((prev) =>
+      prev.includes(id) ? prev.filter((existingId) => existingId !== id) : [...prev, id],
+    )
   }
 
-  const canSave = name.trim().length > 0 && selectedIds.size > 0 && !saving
+  const orderedBreweries = orderedIds
+    .map((id) => breweries.find((b) => b.id === id))
+    .filter(Boolean)
+
+  const canSave = name.trim().length > 0 && orderedIds.length > 0 && !saving
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -29,9 +29,11 @@ function AddCrawlForm({ cityId, breweries, breweriesStatus, onClose }) {
     setSaving(true)
     setError(null)
 
-    const selectedBreweries = breweries
-      .filter((b) => selectedIds.has(b.id))
-      .map((b) => ({ id: b.id, name: b.name, breweryType: b.brewery_type ?? null }))
+    const selectedBreweries = orderedBreweries.map((b) => ({
+      id: b.id,
+      name: b.name,
+      breweryType: b.brewery_type ?? null,
+    }))
 
     try {
       await createCrawl(cityId, {
@@ -77,31 +79,60 @@ function AddCrawlForm({ cityId, breweries, breweriesStatus, onClose }) {
         </label>
 
         <div className="field">
-          <span className="field__label">
-            Breweries ({selectedIds.size} selected)
-          </span>
+          <div className="tab-bar tab-bar--modal">
+            <button
+              type="button"
+              className={`tab-bar__button${activeTab === 'breweries' ? ' tab-bar__button--active' : ''}`}
+              onClick={() => setActiveTab('breweries')}
+            >
+              Breweries ({orderedIds.length} selected)
+            </button>
+            <button
+              type="button"
+              className={`tab-bar__button${activeTab === 'path' ? ' tab-bar__button--active' : ''}`}
+              onClick={() => setActiveTab('path')}
+            >
+              Brewery Path
+            </button>
+          </div>
 
-          {breweriesStatus === 'loading' && (
-            <p className="city-panel__message">Loading breweries…</p>
-          )}
-          {breweriesStatus === 'error' && (
-            <p className="city-panel__message">Couldn't load the brewery list.</p>
+          {activeTab === 'breweries' && (
+            <>
+              {breweriesStatus === 'loading' && (
+                <p className="city-panel__message">Loading breweries…</p>
+              )}
+              {breweriesStatus === 'error' && (
+                <p className="city-panel__message">Couldn't load the brewery list.</p>
+              )}
+
+              {breweriesStatus === 'ready' && (
+                <div className="brewery-picker">
+                  {breweries.map((brewery) => (
+                    <label key={brewery.id} className="brewery-picker__item">
+                      <input
+                        type="checkbox"
+                        checked={orderedIds.includes(brewery.id)}
+                        onChange={() => toggleBrewery(brewery.id)}
+                      />
+                      {brewery.name}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </>
           )}
 
-          {breweriesStatus === 'ready' && (
-            <div className="brewery-picker">
-              {breweries.map((brewery) => (
-                <label key={brewery.id} className="brewery-picker__item">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.has(brewery.id)}
-                    onChange={() => toggleBrewery(brewery.id)}
-                  />
-                  {brewery.name}
-                </label>
-              ))}
-            </div>
-          )}
+          {activeTab === 'path' &&
+            (orderedBreweries.length === 0 ? (
+              <p className="city-panel__message">
+                Select breweries first, then drag to set the crawl order here.
+              </p>
+            ) : (
+              <BreweryPathList
+                orderedBreweries={orderedBreweries}
+                onReorder={setOrderedIds}
+              />
+            ))}
         </div>
 
         {error && <p className="modal__error">{error}</p>}

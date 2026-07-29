@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+import { usePrefersDark } from '../hooks/usePrefersDark'
 
 // Vite doesn't serve Leaflet's default marker images correctly out of the
 // box, so point the default icon at the bundled asset URLs directly.
@@ -15,8 +16,20 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 })
 
-const ROUTE_COLOR = '#c9722c'
+const ROUTE_COLOR = '#00b8ff'
 const EARTH_RADIUS_MILES = 3958.8
+const METERS_PER_MILE = 1609.34
+
+const LIGHT_TILES = {
+  url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  attribution:
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+}
+const DARK_TILES = {
+  url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  attribution:
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+}
 
 function stopIcon(number) {
   return L.divIcon({
@@ -47,6 +60,28 @@ function haversineMiles([lat1, lng1], [lat2, lng2]) {
   return EARTH_RADIUS_MILES * 2 * Math.asin(Math.sqrt(a))
 }
 
+function legKey(leg) {
+  return `${leg.from.brewery.id}->${leg.to.brewery.id}`
+}
+
+// Uses OSRM's free public routing server (no API key) to fetch a real
+// driving path between two points. Positions are [lat, lng]; OSRM expects
+// {lng},{lat} in the URL and returns geometry as [lng, lat] pairs.
+async function fetchDrivingRoute(from, to) {
+  const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`
+  const response = await fetch(url)
+  if (!response.ok) throw new Error('routing request failed')
+
+  const data = await response.json()
+  const route = data.routes?.[0]
+  if (!route) throw new Error('no route found')
+
+  return {
+    positions: route.geometry.coordinates.map(([lng, lat]) => [lat, lng]),
+    distanceMiles: route.distance / METERS_PER_MILE,
+  }
+}
+
 function FitBounds({ bounds }) {
   const map = useMap()
 
@@ -61,6 +96,9 @@ function FitBounds({ bounds }) {
 
 function MapTab({ breweries, status, crawls, crawlsStatus }) {
   const [activeCrawlId, setActiveCrawlId] = useState('')
+  const [drivingRoutes, setDrivingRoutes] = useState({})
+  const [routingStatus, setRoutingStatus] = useState('idle')
+  const prefersDark = usePrefersDark()
 
   const located = useMemo(
     () =>
@@ -95,6 +133,35 @@ function MapTab({ breweries, status, crawls, crawlsStatus }) {
     [stops],
   )
 
+  useEffect(() => {
+    if (legs.length === 0) {
+      setDrivingRoutes({})
+      setRoutingStatus('idle')
+      return
+    }
+
+    let cancelled = false
+    setRoutingStatus('loading')
+
+    Promise.all(
+      legs.map((leg) =>
+        fetchDrivingRoute(leg.from.position, leg.to.position)
+          .then((result) => ({ key: legKey(leg), result }))
+          .catch(() => ({ key: legKey(leg), result: null })),
+      ),
+    ).then((results) => {
+      if (cancelled) return
+      const next = {}
+      for (const { key, result } of results) next[key] = result
+      setDrivingRoutes(next)
+      setRoutingStatus('done')
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [legs])
+
   if (status === 'loading') {
     return <p className="city-panel__message">Loading breweries…</p>
   }
@@ -123,6 +190,7 @@ function MapTab({ breweries, status, crawls, crawlsStatus }) {
   const routeBounds = stops.length > 0 ? L.latLngBounds(stops.map((s) => s.position)) : null
   const activeBounds = activeCrawl && routeBounds ? routeBounds : allBounds
   const initialCenter = allBounds.getCenter()
+  const tiles = prefersDark ? DARK_TILES : LIGHT_TILES
 
   return (
     <div>
@@ -159,12 +227,13 @@ function MapTab({ breweries, status, crawls, crawlsStatus }) {
         </p>
       )}
 
+      {activeCrawl && routingStatus === 'loading' && (
+        <p className="map-tab__note">Calculating driving directions…</p>
+      )}
+
       <div className="map-tab__container">
         <MapContainer center={initialCenter} zoom={12} scrollWheelZoom>
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
+          <TileLayer url={tiles.url} attribution={tiles.attribution} />
           <FitBounds bounds={activeBounds} />
 
           {regularMarkers.map(({ brewery, position }) => (
@@ -201,26 +270,38 @@ function MapTab({ breweries, status, crawls, crawlsStatus }) {
             </Marker>
           ))}
 
-          {legs.map((leg, i) => (
-            <Polyline
-              key={`line-${i}`}
-              positions={[leg.from.position, leg.to.position]}
-              pathOptions={{ color: ROUTE_COLOR, weight: 4 }}
-            />
-          ))}
+          {legs.map((leg) => {
+            const driving = drivingRoutes[legKey(leg)]
+            const positions = driving?.positions ?? [leg.from.position, leg.to.position]
+            return (
+              <Polyline
+                key={`line-${legKey(leg)}`}
+                positions={positions}
+                pathOptions={{ color: ROUTE_COLOR, weight: 5, opacity: 0.9 }}
+              />
+            )
+          })}
 
-          {legs.map((leg, i) => (
-            <Polyline
-              key={`hit-${i}`}
-              positions={[leg.from.position, leg.to.position]}
-              pathOptions={{ color: ROUTE_COLOR, weight: 20, opacity: 0 }}
-              eventHandlers={{ click: (event) => event.target.openTooltip() }}
-            >
-              <Tooltip sticky>
-                {leg.from.brewery.name} → {leg.to.brewery.name}: {leg.distance.toFixed(1)} mi
-              </Tooltip>
-            </Polyline>
-          ))}
+          {legs.map((leg) => {
+            const driving = drivingRoutes[legKey(leg)]
+            const positions = driving?.positions ?? [leg.from.position, leg.to.position]
+            const distance = driving?.distanceMiles ?? leg.distance
+            const label = driving ? 'driving' : 'straight-line'
+
+            return (
+              <Polyline
+                key={`hit-${legKey(leg)}`}
+                positions={positions}
+                pathOptions={{ color: ROUTE_COLOR, weight: 20, opacity: 0 }}
+                eventHandlers={{ click: (event) => event.target.openTooltip() }}
+              >
+                <Tooltip sticky>
+                  {leg.from.brewery.name} → {leg.to.brewery.name}: {distance.toFixed(1)} mi (
+                  {label})
+                </Tooltip>
+              </Polyline>
+            )
+          })}
         </MapContainer>
       </div>
     </div>
