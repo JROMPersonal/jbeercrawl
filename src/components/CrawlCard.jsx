@@ -1,6 +1,20 @@
-function CrawlCard({ crawl }) {
+function CrawlCard({ crawl, onSelect }) {
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onSelect(crawl)
+    }
+  }
+
   return (
-    <div className="crawl-card">
+    <div
+      className="crawl-card"
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelect(crawl)}
+      onKeyDown={handleKeyDown}
+      title="View this crawl's route on the map"
+    >
       <div className="crawl-card__header">
         <h3 className="crawl-card__name">{crawl.name}</h3>
         <span className="crawl-card__count">

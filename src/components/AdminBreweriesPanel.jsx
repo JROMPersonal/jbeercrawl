@@ -111,7 +111,14 @@ function AdminBreweriesPanel({ cities }) {
           )}
 
           <h3 className="admin-panel__section-title">
-            Open Brewery DB breweries (not editable here)
+            Open Brewery DB breweries{' '}
+            <span className="admin-panel__readonly-note">
+              (Populated by{' '}
+              <a href="https://www.openbrewerydb.org/" target="_blank" rel="noreferrer">
+                API
+              </a>
+              )
+            </span>
           </h3>
           {apiBreweries.length === 0 ? (
             <p className="city-panel__message">None found via the API for this city.</p>

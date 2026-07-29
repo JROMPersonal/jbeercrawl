@@ -107,8 +107,14 @@ function CloseOnMapClick({ onClose }) {
   return null
 }
 
-function MapTab({ breweries, status, crawls, crawlsStatus }) {
-  const [activeCrawlId, setActiveCrawlId] = useState('')
+function MapTab({
+  breweries,
+  status,
+  crawls,
+  crawlsStatus,
+  activeCrawlId,
+  onActiveCrawlIdChange,
+}) {
   const [drivingRoutes, setDrivingRoutes] = useState({})
   const [routingStatus, setRoutingStatus] = useState('idle')
   const [openLegKey, setOpenLegKey] = useState(null)
@@ -216,12 +222,12 @@ function MapTab({ breweries, status, crawls, crawlsStatus }) {
   return (
     <div>
       <div className="map-tab__toolbar">
-        {crawlsStatus === 'ready' && crawls.length > 0 && (
+        {crawlsStatus === 'ready' && crawls.length > 0 ? (
           <label className="map-tab__route-select">
             <span>Show route:</span>
             <select
               value={activeCrawlId}
-              onChange={(event) => setActiveCrawlId(event.target.value)}
+              onChange={(event) => onActiveCrawlIdChange(event.target.value)}
             >
               <option value="">All breweries (no route)</option>
               {crawls.map((crawl) => (
@@ -231,6 +237,8 @@ function MapTab({ breweries, status, crawls, crawlsStatus }) {
               ))}
             </select>
           </label>
+        ) : (
+          <span className="map-tab__route-select">All breweries (no route)</span>
         )}
       </div>
 

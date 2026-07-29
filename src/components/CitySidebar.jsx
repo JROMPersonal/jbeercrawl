@@ -2,12 +2,9 @@ import { useState } from 'react'
 import { isFirebaseConfigured } from '../firebase'
 import CityCard from './CityCard'
 import AddCityForm from './AddCityForm'
-import ReportForm from './ReportForm'
 
-function CitySidebar({ cities, selectedCityId, onSelectCity }) {
+function CitySidebar({ cities, search, selectedCityId, onSelectCity }) {
   const [showAddCity, setShowAddCity] = useState(false)
-  const [showReportForm, setShowReportForm] = useState(false)
-  const [search, setSearch] = useState('')
   const citiesWithCredit = cities.filter((city) => city.imageCredit)
 
   const query = search.trim().toLowerCase()
@@ -22,16 +19,6 @@ function CitySidebar({ cities, selectedCityId, onSelectCity }) {
 
   return (
     <aside className="city-sidebar">
-      <h1 className="city-sidebar__title">Beer Crawl Planner</h1>
-
-      <input
-        type="search"
-        className="city-sidebar__search"
-        placeholder="Search cities…"
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-      />
-
       <div className="city-sidebar__list">
         {filteredCities.length === 0 ? (
           <p className="city-sidebar__no-results">No cities match your search.</p>
@@ -57,16 +44,6 @@ function CitySidebar({ cities, selectedCityId, onSelectCity }) {
         </button>
       )}
 
-      {isFirebaseConfigured && (
-        <button
-          type="button"
-          className="city-sidebar__report-link"
-          onClick={() => setShowReportForm(true)}
-        >
-          Report an issue / suggest a change
-        </button>
-      )}
-
       {citiesWithCredit.length > 0 && (
         <p className="city-sidebar__credits">
           Photos:{' '}
@@ -87,7 +64,6 @@ function CitySidebar({ cities, selectedCityId, onSelectCity }) {
       )}
 
       {showAddCity && <AddCityForm onClose={() => setShowAddCity(false)} />}
-      {showReportForm && <ReportForm onClose={() => setShowReportForm(false)} />}
     </aside>
   )
 }

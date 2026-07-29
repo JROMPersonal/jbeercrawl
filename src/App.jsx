@@ -1,18 +1,33 @@
 import { useState } from 'react'
 import { useCities } from './hooks/useCities'
-import { isFirebaseConfigured } from './firebase'
+import TopBar from './components/TopBar'
 import CitySidebar from './components/CitySidebar'
 import CityPanel from './components/CityPanel'
-import AdminGearButton from './components/AdminGearButton'
 import AdminPage from './components/AdminPage'
+import ReportForm from './components/ReportForm'
 import './App.css'
 
 function App() {
   const cities = useCities()
   const [selectedCityId, setSelectedCityId] = useState(cities[0]?.id ?? null)
+  const [search, setSearch] = useState('')
+  const [tab, setTab] = useState('breweries')
+  const [activeCrawlId, setActiveCrawlId] = useState('')
   const [view, setView] = useState('app')
+  const [showReportForm, setShowReportForm] = useState(false)
 
   const selectedCity = cities.find((city) => city.id === selectedCityId) ?? null
+
+  const handleSelectCity = (city) => {
+    setSelectedCityId(city.id)
+    setTab('breweries')
+    setActiveCrawlId('')
+  }
+
+  const handleSelectCrawl = (crawl) => {
+    setActiveCrawlId(crawl.id)
+    setTab('map')
+  }
 
   if (view === 'admin') {
     return <AdminPage cities={cities} onExit={() => setView('app')} />
@@ -20,13 +35,33 @@ function App() {
 
   return (
     <div className="app">
-      {isFirebaseConfigured && <AdminGearButton onClick={() => setView('admin')} />}
-      <CitySidebar
-        cities={cities}
-        selectedCityId={selectedCityId}
-        onSelectCity={(city) => setSelectedCityId(city.id)}
+      <TopBar
+        search={search}
+        onSearchChange={setSearch}
+        selectedCity={selectedCity}
+        tab={tab}
+        onTabChange={setTab}
+        onOpenAdmin={() => setView('admin')}
+        onOpenReportForm={() => setShowReportForm(true)}
       />
-      <CityPanel city={selectedCity} />
+
+      <div className="app__body">
+        <CitySidebar
+          cities={cities}
+          search={search}
+          selectedCityId={selectedCityId}
+          onSelectCity={handleSelectCity}
+        />
+        <CityPanel
+          city={selectedCity}
+          tab={tab}
+          activeCrawlId={activeCrawlId}
+          onActiveCrawlIdChange={setActiveCrawlId}
+          onSelectCrawl={handleSelectCrawl}
+        />
+      </div>
+
+      {showReportForm && <ReportForm onClose={() => setShowReportForm(false)} />}
     </div>
   )
 }

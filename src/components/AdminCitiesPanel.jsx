@@ -82,7 +82,16 @@ function AdminCitiesPanel({ cities }) {
         </ul>
       )}
 
-      <h3 className="admin-panel__section-title">Built-in cities (not editable here)</h3>
+      <h3 className="admin-panel__section-title">
+        Built-in cities{' '}
+        <span className="admin-panel__readonly-note">
+          (Populated by Source Code.{' '}
+          <a href="https://github.com/JROMPersonal/jbeercrawl/issues" target="_blank" rel="noreferrer">
+            Make git issue
+          </a>
+          )
+        </span>
+      </h3>
       <ul className="admin-list admin-list--readonly">
         {builtInCities.map((city) => (
           <li key={city.id} className="admin-list__row">

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import CrawlCard from './CrawlCard'
 import AddCrawlForm from './AddCrawlForm'
 
-function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus }) {
+function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus, onSelectCrawl }) {
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
 
@@ -64,7 +64,7 @@ function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus }) {
       {crawlsStatus === 'ready' && filteredCrawls.length > 0 && (
         <div className="crawl-grid">
           {filteredCrawls.map((crawl) => (
-            <CrawlCard key={crawl.id} crawl={crawl} />
+            <CrawlCard key={crawl.id} crawl={crawl} onSelect={onSelectCrawl} />
           ))}
         </div>
       )}

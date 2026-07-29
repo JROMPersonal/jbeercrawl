@@ -1,18 +1,12 @@
-import { useEffect, useState } from 'react'
 import { useBreweries } from '../hooks/useBreweries'
 import { useCrawls } from '../hooks/useCrawls'
 import BreweriesTab from './BreweriesTab'
 import CrawlsTab from './CrawlsTab'
 import MapTab from './MapTab'
 
-function CityPanel({ city }) {
-  const [tab, setTab] = useState('breweries')
+function CityPanel({ city, tab, activeCrawlId, onActiveCrawlIdChange, onSelectCrawl }) {
   const { breweries, status } = useBreweries(city)
   const { crawls, status: crawlsStatus } = useCrawls(city)
-
-  useEffect(() => {
-    setTab('breweries')
-  }, [city?.id])
 
   if (!city) {
     return (
@@ -26,34 +20,6 @@ function CityPanel({ city }) {
 
   return (
     <main className="city-panel">
-      <h2 className="city-panel__title">
-        {city.name}, {city.stateAbbr}
-      </h2>
-
-      <div className="tab-bar">
-        <button
-          type="button"
-          className={`tab-bar__button${tab === 'breweries' ? ' tab-bar__button--active' : ''}`}
-          onClick={() => setTab('breweries')}
-        >
-          Breweries
-        </button>
-        <button
-          type="button"
-          className={`tab-bar__button${tab === 'crawls' ? ' tab-bar__button--active' : ''}`}
-          onClick={() => setTab('crawls')}
-        >
-          Beer Crawls
-        </button>
-        <button
-          type="button"
-          className={`tab-bar__button${tab === 'map' ? ' tab-bar__button--active' : ''}`}
-          onClick={() => setTab('map')}
-        >
-          Map
-        </button>
-      </div>
-
       {tab === 'breweries' && (
         <BreweriesTab city={city} breweries={breweries} status={status} />
       )}
@@ -64,6 +30,7 @@ function CityPanel({ city }) {
           crawlsStatus={crawlsStatus}
           breweries={breweries}
           breweriesStatus={status}
+          onSelectCrawl={onSelectCrawl}
         />
       )}
       {tab === 'map' && (
@@ -72,6 +39,8 @@ function CityPanel({ city }) {
           status={status}
           crawls={crawls}
           crawlsStatus={crawlsStatus}
+          activeCrawlId={activeCrawlId}
+          onActiveCrawlIdChange={onActiveCrawlIdChange}
         />
       )}
     </main>
