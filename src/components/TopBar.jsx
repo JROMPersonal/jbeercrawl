@@ -14,7 +14,12 @@ function TopBar({ selectedCity, onOpenAdmin, onOpenReportForm, onToggleCityDrawe
           ☰
         </button>
         <a className="top-bar__title" href={import.meta.env.BASE_URL}>
-          JBeer Crawl
+          <span className="top-bar__title-text">JBeer Crawl</span>
+          <img
+            className="top-bar__icon"
+            src={`${import.meta.env.BASE_URL}jbeercrawl-icon.png`}
+            alt=""
+          />
         </a>
       </div>
 

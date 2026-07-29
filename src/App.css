@@ -53,6 +53,9 @@
 }
 
 .top-bar__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 16px;
   font-weight: 700;
   color: var(--text-h);
@@ -60,8 +63,15 @@
   text-decoration: none;
 }
 
-.top-bar__title:hover {
+.top-bar__title:hover .top-bar__title-text {
   text-decoration: underline;
+}
+
+.top-bar__icon {
+  height: 36px;
+  width: 36px;
+  border-radius: 8px;
+  object-fit: cover;
 }
 
 .top-bar__hamburger {
