@@ -36,8 +36,6 @@ function App() {
   return (
     <div className="app">
       <TopBar
-        search={search}
-        onSearchChange={setSearch}
         selectedCity={selectedCity}
         onOpenAdmin={() => setView('admin')}
         onOpenReportForm={() => setShowReportForm(true)}
@@ -47,6 +45,7 @@ function App() {
         <CitySidebar
           cities={cities}
           search={search}
+          onSearchChange={setSearch}
           selectedCityId={selectedCityId}
           onSelectCity={handleSelectCity}
         />

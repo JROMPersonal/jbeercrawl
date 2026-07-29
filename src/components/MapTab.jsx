@@ -72,6 +72,25 @@ function legKey(leg) {
   return `${leg.from.brewery.id}->${leg.to.brewery.id}`
 }
 
+function buildGoogleMapsUrl(stops) {
+  const [originLat, originLng] = stops[0].position
+  const [destLat, destLng] = stops[stops.length - 1].position
+  const waypoints = stops
+    .slice(1, -1)
+    .map(({ position }) => `${position[0]},${position[1]}`)
+    .join('|')
+
+  const params = new URLSearchParams({
+    api: '1',
+    origin: `${originLat},${originLng}`,
+    destination: `${destLat},${destLng}`,
+    travelmode: 'driving',
+  })
+  if (waypoints) params.set('waypoints', waypoints)
+
+  return `https://www.google.com/maps/dir/?${params.toString()}`
+}
+
 // Uses OSRM's free public routing server (no API key) to fetch a real
 // driving path between two points. Positions are [lat, lng]; OSRM expects
 // {lng},{lat} in the URL and returns geometry as [lng, lat] pairs.
@@ -239,6 +258,17 @@ function MapTab({
           </label>
         ) : (
           <span className="map-tab__route-select">All breweries (no route)</span>
+        )}
+
+        {activeCrawl && stops.length >= 2 && (
+          <a
+            className="map-tab__gmaps-link"
+            href={buildGoogleMapsUrl(stops)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open in Google Maps ↗
+          </a>
         )}
       </div>
 

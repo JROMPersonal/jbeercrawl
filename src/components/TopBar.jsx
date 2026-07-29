@@ -1,23 +1,23 @@
 import { isFirebaseConfigured } from '../firebase'
 import AdminGearButton from './AdminGearButton'
 
-function TopBar({ search, onSearchChange, selectedCity, onOpenAdmin, onOpenReportForm }) {
+function TopBar({ selectedCity, onOpenAdmin, onOpenReportForm }) {
   return (
     <header className="top-bar">
-      <div className="top-bar__row">
-        <div className="top-bar__left">
-          <a className="top-bar__title" href={import.meta.env.BASE_URL}>
-            JBeer Crawl
-          </a>
-        </div>
+      <div className="top-bar__brand">
+        <a className="top-bar__title" href={import.meta.env.BASE_URL}>
+          JBeer Crawl
+        </a>
+      </div>
 
-        <div className="top-bar__center">
-          {selectedCity && (
-            <h2 className="top-bar__city-name">
-              {selectedCity.name}, {selectedCity.stateAbbr}
-            </h2>
-          )}
-        </div>
+      <span className="top-bar__vline" aria-hidden="true" />
+
+      <div className="top-bar__main">
+        {selectedCity && (
+          <h2 className="top-bar__city-name">
+            {selectedCity.name}, {selectedCity.stateAbbr}
+          </h2>
+        )}
 
         <div className="top-bar__right">
           {isFirebaseConfigured && (
@@ -28,14 +28,6 @@ function TopBar({ search, onSearchChange, selectedCity, onOpenAdmin, onOpenRepor
           {isFirebaseConfigured && <AdminGearButton onClick={onOpenAdmin} />}
         </div>
       </div>
-
-      <input
-        type="search"
-        className="top-bar__search"
-        placeholder="Search cities…"
-        value={search}
-        onChange={(event) => onSearchChange(event.target.value)}
-      />
     </header>
   )
 }

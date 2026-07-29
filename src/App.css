@@ -38,19 +38,15 @@
   position: sticky;
   top: 0;
   z-index: 15;
-  padding: 12px 20px 16px;
+  display: flex;
+  align-items: center;
   background: var(--panel-bg);
   border-bottom: 1px solid var(--border);
 }
 
-.top-bar__row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 16px;
-}
-
-.top-bar__left {
+.top-bar__brand {
+  flex: 0 0 300px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   min-width: 0;
@@ -68,9 +64,19 @@
   text-decoration: underline;
 }
 
-.top-bar__center {
+.top-bar__vline {
+  align-self: stretch;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.top-bar__main {
+  flex: 1;
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
   min-width: 0;
 }
 
@@ -81,24 +87,12 @@
   white-space: nowrap;
 }
 
-.top-bar__search {
-  display: block;
-  width: 220px;
-  margin-top: 12px;
-  padding: 7px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
-  font-size: 13px;
-}
-
 .top-bar__right {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 14px;
-  min-width: 0;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .top-bar__report-link {
@@ -278,8 +272,34 @@
   flex: 0 0 300px;
   background: var(--sidebar-bg);
   color: var(--sidebar-text);
-  padding: 24px 16px;
   overflow-y: auto;
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.city-sidebar__search-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--sidebar-bg);
+  padding: 16px 16px 12px;
+}
+
+.city-sidebar__search {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(244, 241, 236, 0.2);
+  background: rgba(244, 241, 236, 0.08);
+  color: var(--sidebar-text);
+  font-size: 14px;
+}
+
+.city-sidebar__search::placeholder {
+  color: rgba(244, 241, 236, 0.5);
+}
+
+.city-sidebar__body {
+  padding: 0 16px 24px;
 }
 
 .city-sidebar__no-results {
@@ -781,8 +801,22 @@
 
 .map-tab__toolbar {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   justify-content: flex-start;
+  gap: 16px;
   margin-bottom: 12px;
+}
+
+.map-tab__gmaps-link {
+  font-size: 14px;
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.map-tab__gmaps-link:hover {
+  text-decoration: underline;
 }
 
 .map-tab__route-select {
@@ -839,67 +873,69 @@
 /* --- Mobile --- */
 
 @media (max-width: 760px) {
+  /* Only the top bar (title, city name, report link, cog) stays pinned on
+     mobile. Everything else scrolls together as one normal page instead of
+     independently-scrolling columns with their own sticky sub-headers. */
+  .app {
+    overflow-y: auto;
+  }
+
   .top-bar {
-    padding: 10px 14px 12px;
-  }
-
-  .top-bar__row {
-    grid-template-columns: 1fr;
-    justify-items: start;
-    gap: 6px;
-  }
-
-  .top-bar__center {
-    justify-content: flex-start;
-    order: 2;
-  }
-
-  .top-bar__right {
-    justify-content: flex-start;
-    order: 3;
     flex-wrap: wrap;
   }
 
-  .top-bar__search {
-    width: 100%;
-    margin-top: 10px;
+  .top-bar__brand {
+    flex: 0 0 auto;
+    padding: 10px 12px;
+  }
+
+  .top-bar__vline {
+    display: none;
+  }
+
+  .top-bar__main {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .top-bar__city-name {
+    font-size: 20px;
+  }
+
+  .top-bar__right {
+    margin-left: 0;
   }
 
   .app__body {
+    flex: none;
     flex-direction: column;
   }
 
   .city-sidebar {
-    flex: 0 0 auto;
+    flex: none;
     width: 100%;
-    padding: 12px;
+    overflow-y: visible;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   }
 
-  .city-sidebar__list {
-    flex-direction: row;
-    overflow-x: auto;
-    padding-bottom: 4px;
-  }
-
-  .city-card {
-    flex: 0 0 150px;
-    height: 100px;
-  }
-
-  .city-card__label {
-    font-size: 14px;
-    padding: 8px 10px;
-  }
-
-  .add-city-button {
-    margin-top: 10px;
+  .city-sidebar__search-wrap {
+    position: static;
   }
 
   .city-panel {
-    flex: 1;
+    flex: none;
+    overflow-y: visible;
   }
 
-  .city-panel__tabs.tab-bar,
+  .city-panel__tabs.tab-bar {
+    position: static;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
   .city-panel__content {
     padding-left: 16px;
     padding-right: 16px;
