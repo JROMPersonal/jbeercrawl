@@ -14,7 +14,8 @@ const COLLECTION = 'customCities'
 const slugify = (value) => value.trim().toLowerCase().replace(/\s+/g, '_')
 
 /**
- * Subscribes to real-time updates for community-added cities.
+ * Subscribes to real-time updates for admin-added cities (city creation is
+ * admin-only — see firestore.rules).
  * @returns {() => void} unsubscribe function
  */
 export function subscribeCustomCities(onChange, onError) {

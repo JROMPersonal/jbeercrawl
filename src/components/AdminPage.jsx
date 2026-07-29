@@ -99,7 +99,7 @@ function AdminPage({ cities, onExit }) {
               className={`tab-bar__button${tab === 'crawls' ? ' tab-bar__button--active' : ''}`}
               onClick={() => setTab('crawls')}
             >
-              Beer Crawls
+              JBeer Crawls
             </button>
             <button
               type="button"

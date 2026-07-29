@@ -48,7 +48,7 @@ function AdminCrawlsPanel({ cities }) {
           onClick={() => setShowAddForm(true)}
           disabled={!selectedCity}
         >
-          + Add Beer Crawl
+          + Add JBeer Crawl
         </button>
       </div>
 
@@ -56,14 +56,14 @@ function AdminCrawlsPanel({ cities }) {
         <p className="city-panel__message">Firestore isn't configured.</p>
       )}
       {crawlsStatus === 'loading' && (
-        <p className="city-panel__message">Loading beer crawls…</p>
+        <p className="city-panel__message">Loading JBeer Crawls…</p>
       )}
       {crawlsStatus === 'error' && (
-        <p className="city-panel__message">Couldn't load beer crawls right now.</p>
+        <p className="city-panel__message">Couldn't load JBeer Crawls right now.</p>
       )}
 
       {crawlsStatus === 'ready' && crawls.length === 0 && (
-        <p className="city-panel__message">No beer crawls yet for this city.</p>
+        <p className="city-panel__message">No JBeer Crawls yet for this city.</p>
       )}
 
       {crawlsStatus === 'ready' && crawls.length > 0 && (

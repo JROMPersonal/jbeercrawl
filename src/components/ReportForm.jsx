@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createReport } from '../api/reports'
 
 const REPORT_TYPES = [
+  { value: 'city_request', label: 'Request city' },
   { value: 'bug', label: 'Bug report' },
   { value: 'update_request', label: 'Request an update' },
   { value: 'removal_request', label: 'Request removal' },
@@ -9,7 +10,7 @@ const REPORT_TYPES = [
 ]
 
 function ReportForm({ onClose }) {
-  const [type, setType] = useState('bug')
+  const [type, setType] = useState('city_request')
   const [message, setMessage] = useState('')
   const [about, setAbout] = useState('')
   const [contactEmail, setContactEmail] = useState('')

@@ -14,7 +14,7 @@ import { db } from '../firebase'
 const COLLECTION = 'crawls'
 
 /**
- * Subscribes to real-time updates for all beer crawls belonging to a city.
+ * Subscribes to real-time updates for all JBeer Crawls belonging to a city.
  * Sorting happens client-side (newest first) to avoid requiring a Firestore
  * composite index for `where(cityId) + orderBy(createdAt)`.
  * @returns {() => void} unsubscribe function

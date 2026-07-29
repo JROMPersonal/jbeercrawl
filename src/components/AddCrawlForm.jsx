@@ -2,10 +2,17 @@ import { useState } from 'react'
 import { createCrawl } from '../api/crawls'
 import BreweryPathList from './BreweryPathList'
 
-function AddCrawlForm({ cityId, breweries, breweriesStatus, onClose }) {
+function AddCrawlForm({
+  cityId,
+  breweries,
+  breweriesStatus,
+  initialOrderedIds,
+  onClose,
+  onCreated,
+}) {
   const [name, setName] = useState('')
   const [creatorName, setCreatorName] = useState('')
-  const [orderedIds, setOrderedIds] = useState([])
+  const [orderedIds, setOrderedIds] = useState(() => initialOrderedIds ?? [])
   const [activeTab, setActiveTab] = useState('breweries')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
@@ -36,11 +43,12 @@ function AddCrawlForm({ cityId, breweries, breweriesStatus, onClose }) {
     }))
 
     try {
-      await createCrawl(cityId, {
+      const docRef = await createCrawl(cityId, {
         name,
         creatorName,
         breweries: selectedBreweries,
       })
+      onCreated?.(docRef.id)
       onClose()
     } catch {
       setError("Couldn't save this crawl right now. Please try again.")
@@ -55,7 +63,7 @@ function AddCrawlForm({ cityId, breweries, breweriesStatus, onClose }) {
         onClick={(event) => event.stopPropagation()}
         onSubmit={handleSubmit}
       >
-        <h3 className="modal__title">Add a Beer Crawl</h3>
+        <h3 className="modal__title">Add a JBeer Crawl</h3>
 
         <label className="field">
           <span className="field__label">Crawl name</span>

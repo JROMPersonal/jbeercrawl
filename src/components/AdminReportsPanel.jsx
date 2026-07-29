@@ -6,6 +6,7 @@ const TYPE_LABELS = {
   bug: 'Bug report',
   update_request: 'Request an update',
   removal_request: 'Request removal',
+  city_request: 'Request city',
   other: 'Other',
 }
 

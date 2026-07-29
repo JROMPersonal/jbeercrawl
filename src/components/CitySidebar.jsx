@@ -1,10 +1,17 @@
-import { useEffect, useState } from 'react'
-import { isFirebaseConfigured } from '../firebase'
+import { useEffect } from 'react'
 import CityCard from './CityCard'
-import AddCityForm from './AddCityForm'
 
-function CitySidebar({ cities, search, onSearchChange, selectedCityId, onSelectCity, isOpen, onClose }) {
-  const [showAddCity, setShowAddCity] = useState(false)
+function CitySidebar({
+  cities,
+  search,
+  onSearchChange,
+  selectedCityId,
+  onSelectCity,
+  isOpen,
+  onClose,
+  onOpenAllCitiesMap,
+  isAllCitiesMapActive,
+}) {
   const citiesWithCredit = cities.filter((city) => city.imageCredit)
 
   useEffect(() => {
@@ -45,6 +52,14 @@ function CitySidebar({ cities, search, onSearchChange, selectedCityId, onSelectC
         </button>
 
         <div className="city-sidebar__search-wrap">
+          <button
+            type="button"
+            className={`city-sidebar__usa-map-button${isAllCitiesMapActive ? ' city-sidebar__usa-map-button--active' : ''}`}
+            onClick={onOpenAllCitiesMap}
+          >
+            All Cities Map
+          </button>
+
           <input
             type="search"
             className="city-sidebar__search"
@@ -70,16 +85,6 @@ function CitySidebar({ cities, search, onSearchChange, selectedCityId, onSelectC
             )}
           </div>
 
-          {isFirebaseConfigured && (
-            <button
-              type="button"
-              className="add-city-button"
-              onClick={() => setShowAddCity(true)}
-            >
-              + Add City
-            </button>
-          )}
-
           {citiesWithCredit.length > 0 && (
             <p className="city-sidebar__credits">
               Photos:{' '}
@@ -99,8 +104,6 @@ function CitySidebar({ cities, search, onSearchChange, selectedCityId, onSelectC
             </p>
           )}
         </div>
-
-        {showAddCity && <AddCityForm onClose={() => setShowAddCity(false)} />}
       </aside>
     </>
   )

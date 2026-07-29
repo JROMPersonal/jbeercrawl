@@ -38,6 +38,26 @@ export function subscribeCustomBreweriesForCity(cityId, onChange, onError) {
 }
 
 /**
+ * Subscribes to real-time updates for community-added breweries across
+ * every city at once (used by the All Cities Map tab).
+ * @returns {() => void} unsubscribe function
+ */
+export function subscribeAllCustomBreweries(onChange, onError) {
+  return onSnapshot(
+    collection(db, COLLECTION),
+    (snapshot) => {
+      const breweries = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        source: 'custom',
+      }))
+      onChange(breweries)
+    },
+    onError,
+  )
+}
+
+/**
  * @param {{ id: string, name: string, stateAbbr: string }} city
  * @param {{ name: string, breweryType: string, street: string, phone: string, websiteUrl: string, addedBy: string }} brewery
  */

@@ -4,16 +4,17 @@ import TopBar from './components/TopBar'
 import CitySidebar from './components/CitySidebar'
 import CityPanel from './components/CityPanel'
 import AdminPage from './components/AdminPage'
+import AboutPage from './components/AboutPage'
 import ReportForm from './components/ReportForm'
 import './App.css'
 
 function App() {
   const cities = useCities()
-  const [selectedCityId, setSelectedCityId] = useState(cities[0]?.id ?? null)
+  const [selectedCityId, setSelectedCityId] = useState(null)
   const [search, setSearch] = useState('')
   const [tab, setTab] = useState('breweries')
   const [activeCrawlId, setActiveCrawlId] = useState('')
-  const [view, setView] = useState('app')
+  const [view, setView] = useState('about')
   const [showReportForm, setShowReportForm] = useState(false)
   const [showCityDrawer, setShowCityDrawer] = useState(false)
 
@@ -24,11 +25,18 @@ function App() {
     setTab('breweries')
     setActiveCrawlId('')
     setShowCityDrawer(false)
+    setView('app')
   }
 
   const handleSelectCrawl = (crawl) => {
     setActiveCrawlId(crawl.id)
     setTab('map')
+  }
+
+  const handleOpenAllCitiesMap = () => {
+    setTab('usa-map')
+    setShowCityDrawer(false)
+    setView('app')
   }
 
   if (view === 'admin') {
@@ -40,9 +48,12 @@ function App() {
       <TopBar
         selectedCity={selectedCity}
         onOpenAdmin={() => setView('admin')}
+        onOpenAbout={() => setView('about')}
         onOpenReportForm={() => setShowReportForm(true)}
         onToggleCityDrawer={() => setShowCityDrawer((open) => !open)}
       />
+
+      <div className="app__divider" aria-hidden="true" />
 
       <div className="app__body">
         <CitySidebar
@@ -53,15 +64,22 @@ function App() {
           onSelectCity={handleSelectCity}
           isOpen={showCityDrawer}
           onClose={() => setShowCityDrawer(false)}
+          onOpenAllCitiesMap={handleOpenAllCitiesMap}
+          isAllCitiesMapActive={tab === 'usa-map'}
         />
-        <CityPanel
-          city={selectedCity}
-          tab={tab}
-          onTabChange={setTab}
-          activeCrawlId={activeCrawlId}
-          onActiveCrawlIdChange={setActiveCrawlId}
-          onSelectCrawl={handleSelectCrawl}
-        />
+        {view === 'about' ? (
+          <AboutPage />
+        ) : (
+          <CityPanel
+            city={selectedCity}
+            cities={cities}
+            tab={tab}
+            onTabChange={setTab}
+            activeCrawlId={activeCrawlId}
+            onActiveCrawlIdChange={setActiveCrawlId}
+            onSelectCrawl={handleSelectCrawl}
+          />
+        )}
       </div>
 
       {showReportForm && <ReportForm onClose={() => setShowReportForm(false)} />}

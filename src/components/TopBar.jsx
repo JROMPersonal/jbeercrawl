@@ -1,7 +1,13 @@
 import { isFirebaseConfigured } from '../firebase'
 import AdminGearButton from './AdminGearButton'
 
-function TopBar({ selectedCity, onOpenAdmin, onOpenReportForm, onToggleCityDrawer }) {
+function TopBar({
+  selectedCity,
+  onOpenAdmin,
+  onOpenAbout,
+  onOpenReportForm,
+  onToggleCityDrawer,
+}) {
   return (
     <header className="top-bar">
       <div className="top-bar__brand">
@@ -21,9 +27,10 @@ function TopBar({ selectedCity, onOpenAdmin, onOpenReportForm, onToggleCityDrawe
             alt=""
           />
         </a>
+        <button type="button" className="top-bar__about-link" onClick={onOpenAbout}>
+          About
+        </button>
       </div>
-
-      <span className="top-bar__vline" aria-hidden="true" />
 
       <div className="top-bar__main">
         {selectedCity && (

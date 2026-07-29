@@ -60,7 +60,7 @@ function EditCrawlForm({ crawl, breweries, breweriesStatus, onClose }) {
         onClick={(event) => event.stopPropagation()}
         onSubmit={handleSubmit}
       >
-        <h3 className="modal__title">Edit Beer Crawl</h3>
+        <h3 className="modal__title">Edit JBeer Crawl</h3>
 
         <label className="field">
           <span className="field__label">Crawl name</span>

@@ -11,7 +11,7 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
-// Beer Crawls need a Firestore project to be shared across visitors. Until
+// JBeer Crawls need a Firestore project to be shared across visitors. Until
 // .env is filled in (see .env.example), leave Firebase uninitialized so the
 // rest of the app (city list + breweries) keeps working without it.
 export const isFirebaseConfigured = Boolean(

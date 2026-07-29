@@ -1,12 +1,26 @@
 import { useBreweries } from '../hooks/useBreweries'
 import { useCrawls } from '../hooks/useCrawls'
+import { useAllBreweries } from '../hooks/useAllBreweries'
 import BreweriesTab from './BreweriesTab'
 import CrawlsTab from './CrawlsTab'
 import MapTab from './MapTab'
+import UsaMapTab from './UsaMapTab'
 
-function CityPanel({ city, tab, onTabChange, activeCrawlId, onActiveCrawlIdChange, onSelectCrawl }) {
+function CityPanel({
+  city,
+  cities,
+  tab,
+  onTabChange,
+  activeCrawlId,
+  onActiveCrawlIdChange,
+  onSelectCrawl,
+}) {
   const { breweries, status } = useBreweries(city)
   const { crawls, status: crawlsStatus } = useCrawls(city)
+  const { breweries: allBreweries, status: allBreweriesStatus } = useAllBreweries(
+    cities,
+    tab === 'usa-map',
+  )
 
   if (!city) {
     return (
@@ -35,7 +49,7 @@ function CityPanel({ city, tab, onTabChange, activeCrawlId, onActiveCrawlIdChang
           className={`tab-bar__button${tab === 'crawls' ? ' tab-bar__button--active' : ''}`}
           onClick={() => onTabChange('crawls')}
         >
-          Beer Crawls
+          JBeer Crawls
         </button>
         <button
           type="button"
@@ -62,6 +76,7 @@ function CityPanel({ city, tab, onTabChange, activeCrawlId, onActiveCrawlIdChang
         )}
         {tab === 'map' && (
           <MapTab
+            cityId={city.id}
             breweries={breweries}
             status={status}
             crawls={crawls}
@@ -69,6 +84,9 @@ function CityPanel({ city, tab, onTabChange, activeCrawlId, onActiveCrawlIdChang
             activeCrawlId={activeCrawlId}
             onActiveCrawlIdChange={onActiveCrawlIdChange}
           />
+        )}
+        {tab === 'usa-map' && (
+          <UsaMapTab breweries={allBreweries} status={allBreweriesStatus} />
         )}
       </div>
     </main>

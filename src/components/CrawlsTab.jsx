@@ -9,7 +9,7 @@ function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus, onS
   if (crawlsStatus === 'unconfigured') {
     return (
       <p className="city-panel__message">
-        Beer Crawls need a Firestore project configured (see .env.example)
+        JBeer Crawls need a Firestore project configured (see .env.example)
         before they can be created or shown here.
       </p>
     )
@@ -30,7 +30,7 @@ function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus, onS
         <input
           type="search"
           className="crawls-tab__search"
-          placeholder="Search Beer Crawls…"
+          placeholder="Search JBeer Crawls…"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
@@ -39,25 +39,25 @@ function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus, onS
           className="button"
           onClick={() => setShowForm(true)}
         >
-          + Add Beer Crawl
+          + Add JBeer Crawl
         </button>
       </div>
 
       {crawlsStatus === 'loading' && (
-        <p className="city-panel__message">Loading beer crawls…</p>
+        <p className="city-panel__message">Loading JBeer Crawls…</p>
       )}
 
       {crawlsStatus === 'error' && (
         <p className="city-panel__message">
-          Couldn't load beer crawls right now. Please try again in a bit.
+          Couldn't load JBeer Crawls right now. Please try again in a bit.
         </p>
       )}
 
       {crawlsStatus === 'ready' && filteredCrawls.length === 0 && (
         <p className="city-panel__message">
           {crawls.length === 0
-            ? 'No beer crawls yet for this city — be the first to add one.'
-            : 'No beer crawls match your search.'}
+            ? 'No JBeer Crawls yet for this city — be the first to add one.'
+            : 'No JBeer Crawls match your search.'}
         </p>
       )}
 

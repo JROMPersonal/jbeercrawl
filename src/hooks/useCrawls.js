@@ -3,7 +3,7 @@ import { subscribeCrawlsForCity } from '../api/crawls'
 import { isFirebaseConfigured } from '../firebase'
 
 /**
- * Subscribes to real-time Beer Crawls for a city.
+ * Subscribes to real-time JBeer Crawls for a city.
  * @returns {{ crawls: Array, status: 'unconfigured' | 'loading' | 'ready' | 'error' }}
  */
 export function useCrawls(city) {

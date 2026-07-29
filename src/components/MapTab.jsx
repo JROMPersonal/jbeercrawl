@@ -5,32 +5,18 @@ import {
   Marker,
   Polyline,
   Popup,
-  useMap,
+  Tooltip,
   useMapEvents,
 } from 'react-leaflet'
 import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { isSafeUrl } from '../utils/safeUrl'
-
-// Vite doesn't serve Leaflet's default marker images correctly out of the
-// box, so point the default icon at the bundled asset URLs directly.
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-})
+import { TILE_URL, TILE_ATTRIBUTION, toPosition, formatAddress } from '../utils/leafletSetup'
+import AddCrawlForm from './AddCrawlForm'
+import MapFitBounds from './MapFitBounds'
 
 const ROUTE_COLOR = '#00b8ff'
 const EARTH_RADIUS_MILES = 3958.8
 const METERS_PER_MILE = 1609.34
-
-const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-const TILE_ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 
 function stopIcon(number) {
   return L.divIcon({
@@ -39,16 +25,6 @@ function stopIcon(number) {
     iconSize: [28, 28],
     iconAnchor: [14, 14],
   })
-}
-
-function formatAddress(brewery) {
-  return [brewery.street, brewery.city, brewery.state_province].filter(Boolean).join(', ')
-}
-
-function toPosition(brewery) {
-  const lat = parseFloat(brewery?.latitude)
-  const lng = parseFloat(brewery?.longitude)
-  return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null
 }
 
 function haversineMiles([lat1, lng1], [lat2, lng2]) {
@@ -110,24 +86,13 @@ async function fetchDrivingRoute(from, to) {
   }
 }
 
-function FitBounds({ bounds }) {
-  const map = useMap()
-
-  useEffect(() => {
-    if (bounds?.isValid()) {
-      map.fitBounds(bounds, { padding: [30, 30] })
-    }
-  }, [bounds, map])
-
-  return null
-}
-
 function CloseOnMapClick({ onClose }) {
   useMapEvents({ click: onClose })
   return null
 }
 
 function MapTab({
+  cityId,
   breweries,
   status,
   crawls,
@@ -138,6 +103,10 @@ function MapTab({
   const [drivingRoutes, setDrivingRoutes] = useState({})
   const [routingStatus, setRoutingStatus] = useState('idle')
   const [openLegKey, setOpenLegKey] = useState(null)
+  const [extraStopIds, setExtraStopIds] = useState([])
+  const [showSaveForm, setShowSaveForm] = useState(false)
+  const [hoveredBreweryId, setHoveredBreweryId] = useState(null)
+  const [panSignal, setPanSignal] = useState(0)
 
   const located = useMemo(
     () =>
@@ -149,18 +118,45 @@ function MapTab({
 
   const activeCrawl = crawls?.find((crawl) => crawl.id === activeCrawlId) ?? null
 
-  const stops = useMemo(() => {
-    if (!activeCrawl) return []
-    return activeCrawl.breweries
-      .map((crawlBrewery, index) => {
-        const brewery = breweries.find((b) => b.id === crawlBrewery.id)
-        const position = toPosition(brewery)
-        return position ? { brewery, position, stopNumber: index + 1 } : null
-      })
-      .filter(Boolean)
-  }, [activeCrawl, breweries])
+  useEffect(() => {
+    setExtraStopIds([])
+    setShowSaveForm(false)
+  }, [activeCrawlId])
 
-  const skippedStops = activeCrawl ? activeCrawl.breweries.length - stops.length : 0
+  const addExtraStop = (breweryId) => {
+    setExtraStopIds((prev) => (prev.includes(breweryId) ? prev : [...prev, breweryId]))
+  }
+
+  // Extra stops (added by clicking "+ Add to Route" on the map) can build a
+  // route on top of a selected crawl, or entirely from scratch when no crawl
+  // is selected ("All Breweries (No Crawl)") — either way they're combined
+  // into one ordered stop list.
+  const { stops, originalStopCount } = useMemo(() => {
+    const originalStops = activeCrawl
+      ? activeCrawl.breweries
+          .map((crawlBrewery) => {
+            const brewery = breweries.find((b) => b.id === crawlBrewery.id)
+            const position = toPosition(brewery)
+            return position ? { brewery, position } : null
+          })
+          .filter(Boolean)
+      : []
+
+    const addedStops = extraStopIds
+      .map((id) => breweries.find((b) => b.id === id))
+      .map((brewery) => (brewery ? { brewery, position: toPosition(brewery) } : null))
+      .filter((entry) => entry && entry.position !== null)
+
+    return {
+      stops: [...originalStops, ...addedStops].map((stop, index) => ({
+        ...stop,
+        stopNumber: index + 1,
+      })),
+      originalStopCount: originalStops.length,
+    }
+  }, [activeCrawl, breweries, extraStopIds])
+
+  const skippedStops = activeCrawl ? activeCrawl.breweries.length - originalStopCount : 0
 
   const legs = useMemo(
     () =>
@@ -182,6 +178,7 @@ function MapTab({
     }
 
     let cancelled = false
+    let delayTimeoutId
     setRoutingStatus('loading')
 
     Promise.all(
@@ -194,12 +191,20 @@ function MapTab({
       if (cancelled) return
       const next = {}
       for (const { key, result } of results) next[key] = result
-      setDrivingRoutes(next)
-      setRoutingStatus('done')
+
+      // Hold the loading overlay for an extra second even if OSRM responds
+      // instantly — swapping straight lines for the real driving path
+      // immediately looked like a glitch rather than a load.
+      delayTimeoutId = setTimeout(() => {
+        if (cancelled) return
+        setDrivingRoutes(next)
+        setRoutingStatus('done')
+      }, 1000)
     })
 
     return () => {
       cancelled = true
+      clearTimeout(delayTimeoutId)
     }
   }, [legs])
 
@@ -229,7 +234,7 @@ function MapTab({
 
   const allBounds = L.latLngBounds(located.map((entry) => entry.position))
   const routeBounds = stops.length > 0 ? L.latLngBounds(stops.map((s) => s.position)) : null
-  const activeBounds = activeCrawl && routeBounds ? routeBounds : allBounds
+  const activeBounds = routeBounds ?? allBounds
   const initialCenter = allBounds.getCenter()
 
   const openLeg = legs.find((leg) => legKey(leg) === openLegKey) ?? null
@@ -239,29 +244,31 @@ function MapTab({
     openLegPositions = driving?.positions ?? [openLeg.from.position, openLeg.to.position]
   }
 
+  const totalRouteMiles = legs.reduce((sum, leg) => {
+    const driving = drivingRoutes[legKey(leg)]
+    return sum + (driving?.distanceMiles ?? leg.distance)
+  }, 0)
+
   return (
     <div>
       <div className="map-tab__toolbar">
-        {crawlsStatus === 'ready' && crawls.length > 0 ? (
-          <label className="map-tab__route-select">
-            <span>Show route:</span>
-            <select
-              value={activeCrawlId}
-              onChange={(event) => onActiveCrawlIdChange(event.target.value)}
-            >
-              <option value="">All breweries (no route)</option>
-              {crawls.map((crawl) => (
+        <label className="map-tab__route-select">
+          <span>JBeer Crawl Route:</span>
+          <select
+            value={activeCrawlId}
+            onChange={(event) => onActiveCrawlIdChange(event.target.value)}
+          >
+            <option value="">All Breweries (No Crawl)</option>
+            {crawlsStatus === 'ready' &&
+              crawls.map((crawl) => (
                 <option key={crawl.id} value={crawl.id}>
                   {crawl.name}
                 </option>
               ))}
-            </select>
-          </label>
-        ) : (
-          <span className="map-tab__route-select">All breweries (no route)</span>
-        )}
+          </select>
+        </label>
 
-        {activeCrawl && stops.length >= 2 && (
+        {stops.length >= 2 && (
           <a
             className="map-tab__gmaps-link"
             href={buildGoogleMapsUrl(stops)}
@@ -270,6 +277,17 @@ function MapTab({
           >
             Open in Google Maps ↗
           </a>
+        )}
+
+        {stops.length > 0 ? (
+          <span className="map-tab__route-stats">
+            {stops.length} brewer{stops.length === 1 ? 'y' : 'ies'}
+            {legs.length > 0 && <> · {totalRouteMiles.toFixed(1)} mi total</>}
+          </span>
+        ) : (
+          <span className="map-tab__route-stats">
+            {breweries.length} brewer{breweries.length === 1 ? 'y' : 'ies'} in this city
+          </span>
         )}
       </div>
 
@@ -280,29 +298,87 @@ function MapTab({
         </p>
       )}
 
-      {activeCrawl && skippedStops > 0 && (
+      {skippedStops > 0 && (
         <p className="map-tab__note">
           {skippedStops} stop{skippedStops === 1 ? '' : 's'} in this crawl couldn't
           be located on the map.
         </p>
       )}
 
-      {activeCrawl && routingStatus === 'loading' && (
+      {routingStatus === 'loading' && (
         <p className="map-tab__note">Calculating driving directions…</p>
       )}
 
+      {extraStopIds.length > 0 && (
+        <>
+          <p className="map-tab__note">
+            {activeCrawl ? (
+              <>
+                {extraStopIds.length} brewer{extraStopIds.length === 1 ? 'y' : 'ies'} added
+                to this route — save it as a new crawl to keep them (the original crawl
+                isn't changed).
+              </>
+            ) : (
+              <>
+                {extraStopIds.length} brewer{extraStopIds.length === 1 ? 'y' : 'ies'} added
+                — save them as a new JBeer Crawl.
+              </>
+            )}
+          </p>
+          <div className="map-tab__save-route">
+            <button type="button" className="button" onClick={() => setShowSaveForm(true)}>
+              Save as new JBeer Crawl
+            </button>
+            <button
+              type="button"
+              className="button button--ghost"
+              onClick={() => setExtraStopIds([])}
+            >
+              Cancel
+            </button>
+          </div>
+        </>
+      )}
+
       <div className="map-tab__container">
+        <button
+          type="button"
+          className="map-tab__auto-pan"
+          onClick={() => setPanSignal((n) => n + 1)}
+        >
+          Auto Pan
+        </button>
+
+        {routingStatus === 'loading' && (
+          <div className="map-tab__loading-overlay">
+            <img
+              src={`${import.meta.env.BASE_URL}jbeercrawl-icon.png`}
+              alt=""
+              className="map-tab__loading-icon"
+            />
+          </div>
+        )}
+
         <MapContainer center={initialCenter} zoom={12} scrollWheelZoom>
           <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
-          <FitBounds bounds={activeBounds} />
+          <MapFitBounds bounds={activeBounds} triggerKey={`${activeCrawlId}::${panSignal}`} />
           <CloseOnMapClick onClose={() => setOpenLegKey(null)} />
 
           {regularMarkers.map(({ brewery, position }) => (
             <Marker
               key={brewery.id}
               position={position}
-              eventHandlers={{ click: () => setOpenLegKey(null) }}
+              opacity={hoveredBreweryId !== brewery.id ? 0.75 : 1}
+              eventHandlers={{
+                click: () => setOpenLegKey(null),
+                mouseover: () => setHoveredBreweryId(brewery.id),
+                mouseout: () => setHoveredBreweryId(null),
+              }}
             >
+              <Tooltip>
+                <strong>{brewery.name}</strong>
+                {formatAddress(brewery) && <div>{formatAddress(brewery)}</div>}
+              </Tooltip>
               <Popup>
                 <strong>{brewery.name}</strong>
                 {formatAddress(brewery) && <div>{formatAddress(brewery)}</div>}
@@ -313,6 +389,15 @@ function MapTab({
                     </a>
                   </div>
                 )}
+                <div>
+                  <button
+                    type="button"
+                    className="map-tab__add-to-route"
+                    onClick={() => addExtraStop(brewery.id)}
+                  >
+                    + Add to Route
+                  </button>
+                </div>
               </Popup>
             </Marker>
           ))}
@@ -356,6 +441,8 @@ function MapTab({
             const key = legKey(leg)
             const driving = drivingRoutes[key]
             const positions = driving?.positions ?? [leg.from.position, leg.to.position]
+            const distance = driving?.distanceMiles ?? leg.distance
+            const label = driving ? 'driving' : 'straight-line'
 
             return (
               <Polyline
@@ -365,7 +452,12 @@ function MapTab({
                 eventHandlers={{
                   click: () => setOpenLegKey((prev) => (prev === key ? null : key)),
                 }}
-              />
+              >
+                <Tooltip sticky>
+                  {leg.from.brewery.name} → {leg.to.brewery.name}: {distance.toFixed(1)} mi (
+                  {label})
+                </Tooltip>
+              </Polyline>
             )
           })}
 
@@ -381,6 +473,17 @@ function MapTab({
           )}
         </MapContainer>
       </div>
+
+      {showSaveForm && (
+        <AddCrawlForm
+          cityId={cityId}
+          breweries={breweries}
+          breweriesStatus={status}
+          initialOrderedIds={stops.map((stop) => stop.brewery.id)}
+          onClose={() => setShowSaveForm(false)}
+          onCreated={(newCrawlId) => onActiveCrawlIdChange(newCrawlId)}
+        />
+      )}
     </div>
   )
 }
