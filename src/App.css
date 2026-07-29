@@ -536,8 +536,19 @@
 
 .breweries-tab__toolbar {
   display: flex;
-  justify-content: flex-start;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.breweries-tab__search {
+  flex: 1;
+  max-width: 320px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  font-size: 14px;
 }
 
 .brewery-card__address {

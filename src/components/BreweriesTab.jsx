@@ -4,17 +4,30 @@ import BreweryCard from './BreweryCard'
 import AddBreweryForm from './AddBreweryForm'
 
 function BreweriesTab({ city, breweries, status }) {
+  const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
+
+  const query = search.trim().toLowerCase()
+  const filteredBreweries = query
+    ? breweries.filter((brewery) => brewery.name.toLowerCase().includes(query))
+    : breweries
 
   return (
     <div>
-      {isFirebaseConfigured && (
-        <div className="breweries-tab__toolbar">
+      <div className="breweries-tab__toolbar">
+        <input
+          type="search"
+          className="breweries-tab__search"
+          placeholder="Search Breweries…"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+        {isFirebaseConfigured && (
           <button type="button" className="button" onClick={() => setShowForm(true)}>
             + Add Brewery
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {status === 'loading' && (
         <p className="city-panel__message">Loading breweries…</p>
@@ -26,13 +39,17 @@ function BreweriesTab({ city, breweries, status }) {
         </p>
       )}
 
-      {status === 'ready' && breweries.length === 0 && (
-        <p className="city-panel__message">No breweries found for this city.</p>
+      {status === 'ready' && filteredBreweries.length === 0 && (
+        <p className="city-panel__message">
+          {breweries.length === 0
+            ? 'No breweries found for this city.'
+            : 'No breweries match your search.'}
+        </p>
       )}
 
-      {status === 'ready' && breweries.length > 0 && (
+      {status === 'ready' && filteredBreweries.length > 0 && (
         <div className="brewery-grid">
-          {breweries.map((brewery) => (
+          {filteredBreweries.map((brewery) => (
             <BreweryCard key={brewery.id} brewery={brewery} />
           ))}
         </div>
