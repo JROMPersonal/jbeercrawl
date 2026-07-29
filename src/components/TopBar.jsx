@@ -9,13 +9,13 @@ function TopBar({ search, onSearchChange, selectedCity, onOpenAdmin, onOpenRepor
           <a className="top-bar__title" href={import.meta.env.BASE_URL}>
             JBeer Crawl
           </a>
+        </div>
+
+        <div className="top-bar__center">
           {selectedCity && (
-            <>
-              <span className="top-bar__vrule" aria-hidden="true" />
-              <h2 className="top-bar__city-name">
-                {selectedCity.name}, {selectedCity.stateAbbr}
-              </h2>
-            </>
+            <h2 className="top-bar__city-name">
+              {selectedCity.name}, {selectedCity.stateAbbr}
+            </h2>
           )}
         </div>
 

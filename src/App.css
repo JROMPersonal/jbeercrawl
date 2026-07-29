@@ -44,17 +44,15 @@
 }
 
 .top-bar__row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  flex-wrap: wrap;
   gap: 16px;
 }
 
 .top-bar__left {
   display: flex;
   align-items: center;
-  gap: 14px;
-  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -70,10 +68,10 @@
   text-decoration: underline;
 }
 
-.top-bar__vrule {
-  width: 1px;
-  align-self: stretch;
-  background: var(--border);
+.top-bar__center {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
 }
 
 .top-bar__city-name {
@@ -98,9 +96,9 @@
 .top-bar__right {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 14px;
-  flex: 0 0 auto;
-  margin-left: auto;
+  min-width: 0;
 }
 
 .top-bar__report-link {
@@ -836,4 +834,91 @@
   font-size: 13px;
   border: 2px solid #fff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Mobile --- */
+
+@media (max-width: 760px) {
+  .top-bar {
+    padding: 10px 14px 12px;
+  }
+
+  .top-bar__row {
+    grid-template-columns: 1fr;
+    justify-items: start;
+    gap: 6px;
+  }
+
+  .top-bar__center {
+    justify-content: flex-start;
+    order: 2;
+  }
+
+  .top-bar__right {
+    justify-content: flex-start;
+    order: 3;
+    flex-wrap: wrap;
+  }
+
+  .top-bar__search {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .app__body {
+    flex-direction: column;
+  }
+
+  .city-sidebar {
+    flex: 0 0 auto;
+    width: 100%;
+    padding: 12px;
+  }
+
+  .city-sidebar__list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .city-card {
+    flex: 0 0 150px;
+    height: 100px;
+  }
+
+  .city-card__label {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+
+  .add-city-button {
+    margin-top: 10px;
+  }
+
+  .city-panel {
+    flex: 1;
+  }
+
+  .city-panel__tabs.tab-bar,
+  .city-panel__content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .admin-page {
+    padding: 20px 16px;
+  }
+
+  .admin-page__header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .modal {
+    padding: 18px;
+  }
+
+  .map-tab__container {
+    height: 50vh;
+  }
 }
