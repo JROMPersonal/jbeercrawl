@@ -70,8 +70,23 @@
   text-decoration: underline;
 }
 
+.top-bar__vrule {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+}
+
+.top-bar__city-name {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-h);
+  white-space: nowrap;
+}
+
 .top-bar__search {
-  width: 180px;
+  display: block;
+  width: 220px;
+  margin-top: 12px;
   padding: 7px 10px;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -99,18 +114,6 @@
 }
 
 .top-bar__report-link:hover {
-  color: var(--text-h);
-}
-
-.top-bar__rule {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 14px 0 10px;
-}
-
-.top-bar__city-name {
-  font-size: 32px;
-  font-weight: 700;
   color: var(--text-h);
 }
 

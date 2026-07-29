@@ -7,15 +7,16 @@ function TopBar({ search, onSearchChange, selectedCity, onOpenAdmin, onOpenRepor
       <div className="top-bar__row">
         <div className="top-bar__left">
           <a className="top-bar__title" href={import.meta.env.BASE_URL}>
-            JBeer Crawl Planner
+            JBeer Crawl
           </a>
-          <input
-            type="search"
-            className="top-bar__search"
-            placeholder="Search cities…"
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-          />
+          {selectedCity && (
+            <>
+              <span className="top-bar__vrule" aria-hidden="true" />
+              <h2 className="top-bar__city-name">
+                {selectedCity.name}, {selectedCity.stateAbbr}
+              </h2>
+            </>
+          )}
         </div>
 
         <div className="top-bar__right">
@@ -28,14 +29,13 @@ function TopBar({ search, onSearchChange, selectedCity, onOpenAdmin, onOpenRepor
         </div>
       </div>
 
-      {selectedCity && (
-        <>
-          <hr className="top-bar__rule" />
-          <h2 className="top-bar__city-name">
-            {selectedCity.name}, {selectedCity.stateAbbr}
-          </h2>
-        </>
-      )}
+      <input
+        type="search"
+        className="top-bar__search"
+        placeholder="Search cities…"
+        value={search}
+        onChange={(event) => onSearchChange(event.target.value)}
+      />
     </header>
   )
 }
