@@ -1,10 +1,18 @@
 import { isFirebaseConfigured } from '../firebase'
 import AdminGearButton from './AdminGearButton'
 
-function TopBar({ selectedCity, onOpenAdmin, onOpenReportForm }) {
+function TopBar({ selectedCity, onOpenAdmin, onOpenReportForm, onToggleCityDrawer }) {
   return (
     <header className="top-bar">
       <div className="top-bar__brand">
+        <button
+          type="button"
+          className="top-bar__hamburger"
+          onClick={onToggleCityDrawer}
+          aria-label="Toggle city list"
+        >
+          ☰
+        </button>
         <a className="top-bar__title" href={import.meta.env.BASE_URL}>
           JBeer Crawl
         </a>

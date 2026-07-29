@@ -15,6 +15,7 @@ function App() {
   const [activeCrawlId, setActiveCrawlId] = useState('')
   const [view, setView] = useState('app')
   const [showReportForm, setShowReportForm] = useState(false)
+  const [showCityDrawer, setShowCityDrawer] = useState(false)
 
   const selectedCity = cities.find((city) => city.id === selectedCityId) ?? null
 
@@ -22,6 +23,7 @@ function App() {
     setSelectedCityId(city.id)
     setTab('breweries')
     setActiveCrawlId('')
+    setShowCityDrawer(false)
   }
 
   const handleSelectCrawl = (crawl) => {
@@ -39,6 +41,7 @@ function App() {
         selectedCity={selectedCity}
         onOpenAdmin={() => setView('admin')}
         onOpenReportForm={() => setShowReportForm(true)}
+        onToggleCityDrawer={() => setShowCityDrawer((open) => !open)}
       />
 
       <div className="app__body">
@@ -48,6 +51,8 @@ function App() {
           onSearchChange={setSearch}
           selectedCityId={selectedCityId}
           onSelectCity={handleSelectCity}
+          isOpen={showCityDrawer}
+          onClose={() => setShowCityDrawer(false)}
         />
         <CityPanel
           city={selectedCity}

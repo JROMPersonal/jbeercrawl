@@ -64,6 +64,17 @@
   text-decoration: underline;
 }
 
+.top-bar__hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-h);
+  font-size: 20px;
+  line-height: 1;
+  padding: 4px;
+  cursor: pointer;
+}
+
 .top-bar__vline {
   align-self: stretch;
   width: 1px;
@@ -274,6 +285,14 @@
   color: var(--sidebar-text);
   overflow-y: auto;
   border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.city-sidebar__close {
+  display: none;
+}
+
+.city-sidebar__backdrop {
+  display: none;
 }
 
 .city-sidebar__search-wrap {
@@ -873,20 +892,19 @@
 /* --- Mobile --- */
 
 @media (max-width: 760px) {
-  /* Only the top bar (title, city name, report link, cog) stays pinned on
-     mobile. Everything else scrolls together as one normal page instead of
-     independently-scrolling columns with their own sticky sub-headers. */
-  .app {
-    overflow-y: auto;
-  }
-
-  .top-bar {
-    flex-wrap: wrap;
+  /* The top bar (hamburger, title, city name, report link, cog) and the
+     Breweries/Beer Crawls/Map tab bar stay pinned, same as desktop. The city
+     list becomes a hamburger-triggered slide-in drawer instead of a static
+     column, since there's no room for two side-by-side panes. */
+  .top-bar__hamburger {
+    display: flex;
+    align-items: center;
   }
 
   .top-bar__brand {
     flex: 0 0 auto;
     padding: 10px 12px;
+    gap: 10px;
   }
 
   .top-bar__vline {
@@ -908,34 +926,51 @@
     margin-left: 0;
   }
 
-  .app__body {
-    flex: none;
-    flex-direction: column;
+  .city-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 30;
+    width: 82%;
+    max-width: 320px;
+    border-right: none;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
   }
 
-  .city-sidebar {
-    flex: none;
-    width: 100%;
-    overflow-y: visible;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  .city-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .city-sidebar__close {
+    display: block;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--sidebar-text);
+    font-size: 16px;
+    padding: 6px;
+    cursor: pointer;
+    z-index: 6;
   }
 
   .city-sidebar__search-wrap {
-    position: static;
+    padding-right: 44px;
   }
 
-  .city-panel {
-    flex: none;
-    overflow-y: visible;
+  .city-sidebar__backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 25;
   }
 
-  .city-panel__tabs.tab-bar {
-    position: static;
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
+  .city-panel__tabs.tab-bar,
   .city-panel__content {
     padding-left: 16px;
     padding-right: 16px;
