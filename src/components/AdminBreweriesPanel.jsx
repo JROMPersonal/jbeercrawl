@@ -62,7 +62,7 @@ function AdminBreweriesPanel({ cities }) {
         <>
           <h3 className="admin-panel__section-title">Community-added breweries</h3>
           {customBreweries.length === 0 ? (
-            <p className="city-panel__message">No community-added breweries yet for this city.</p>
+            <p className="admin-panel__empty-note">No community-added breweries yet for this city.</p>
           ) : (
             <ul className="admin-list">
               {customBreweries.map((brewery) => (

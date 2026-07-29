@@ -30,7 +30,7 @@ function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus, onS
         <input
           type="search"
           className="crawls-tab__search"
-          placeholder="Search beer crawls…"
+          placeholder="Search Beer Crawls…"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />

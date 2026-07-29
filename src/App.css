@@ -1,7 +1,7 @@
 .app {
   display: flex;
   flex-direction: column;
-  min-height: 100svh;
+  height: 100svh;
 }
 
 .app__body {
@@ -38,13 +38,16 @@
   position: sticky;
   top: 0;
   z-index: 15;
+  padding: 12px 20px 16px;
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.top-bar__row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  padding: 12px 20px;
-  background: var(--panel-bg);
-  border-bottom: 1px solid var(--border);
 }
 
 .top-bar__left {
@@ -60,6 +63,11 @@
   font-weight: 700;
   color: var(--text-h);
   white-space: nowrap;
+  text-decoration: none;
+}
+
+.top-bar__title:hover {
+  text-decoration: underline;
 }
 
 .top-bar__search {
@@ -70,23 +78,6 @@
   background: var(--bg);
   color: var(--text);
   font-size: 13px;
-}
-
-.top-bar__divider {
-  color: var(--text-muted);
-}
-
-.top-bar__city-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-h);
-  white-space: nowrap;
-}
-
-.top-bar__tabs.tab-bar {
-  margin-bottom: 0;
-  border-bottom: none;
-  flex: 0 0 auto;
 }
 
 .top-bar__right {
@@ -108,6 +99,18 @@
 }
 
 .top-bar__report-link:hover {
+  color: var(--text-h);
+}
+
+.top-bar__rule {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 14px 0 10px;
+}
+
+.top-bar__city-name {
+  font-size: 32px;
+  font-weight: 700;
   color: var(--text-h);
 }
 
@@ -153,8 +156,8 @@
 }
 
 .admin-panel__section-title {
-  font-size: 15px;
-  color: var(--text-muted);
+  font-size: 22px;
+  color: var(--text-h);
   margin: 24px 0 10px;
 }
 
@@ -166,6 +169,11 @@
 
 .admin-panel__readonly-note a {
   color: inherit;
+}
+
+.admin-panel__empty-note {
+  color: var(--accent);
+  font-size: 14px;
 }
 
 .admin-list {
@@ -367,8 +375,20 @@
 
 .city-panel {
   flex: 1;
-  padding: 32px 40px;
   overflow-y: auto;
+}
+
+.city-panel__tabs.tab-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg);
+  padding: 20px 40px 0;
+  margin-bottom: 0;
+}
+
+.city-panel__content {
+  padding: 20px 40px 32px;
 }
 
 .city-panel__message {

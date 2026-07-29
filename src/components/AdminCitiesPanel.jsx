@@ -32,7 +32,7 @@ function AdminCitiesPanel({ cities }) {
 
       <h3 className="admin-panel__section-title">Community-added cities</h3>
       {customCities.length === 0 ? (
-        <p className="city-panel__message">No community-added cities yet.</p>
+        <p className="admin-panel__empty-note">No community-added cities yet.</p>
       ) : (
         <ul className="admin-list">
           {customCities.map((city) => (

@@ -39,8 +39,6 @@ function App() {
         search={search}
         onSearchChange={setSearch}
         selectedCity={selectedCity}
-        tab={tab}
-        onTabChange={setTab}
         onOpenAdmin={() => setView('admin')}
         onOpenReportForm={() => setShowReportForm(true)}
       />
@@ -55,6 +53,7 @@ function App() {
         <CityPanel
           city={selectedCity}
           tab={tab}
+          onTabChange={setTab}
           activeCrawlId={activeCrawlId}
           onActiveCrawlIdChange={setActiveCrawlId}
           onSelectCrawl={handleSelectCrawl}
