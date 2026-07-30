@@ -9,7 +9,7 @@ const COLLECTION = 'geocodeCache'
 // *first* write per document (see there for why), so a bad entry can't be
 // corrected in place - baking the version into the doc ID instead means a
 // bump just starts writing to fresh, never-before-used documents.
-const CACHE_VERSION = 'v3'
+const CACHE_VERSION = 'v4'
 
 function cacheDocId(breweryId) {
   return `${breweryId}_${CACHE_VERSION}`

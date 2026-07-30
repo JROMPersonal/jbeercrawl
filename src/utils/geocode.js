@@ -1,7 +1,7 @@
 import { isFirebaseConfigured } from '../firebase'
 import { readSharedGeocodeCache, writeSharedGeocodeCache } from '../api/geocodeCache'
 
-const CACHE_PREFIX = 'jbeercrawl:geocode:v5:'
+const CACHE_PREFIX = 'jbeercrawl:geocode:v6:'
 const REQUEST_TIMEOUT_MS = 8000
 
 // So a query like "..., CA" isn't wrongly matched against Canada instead of
@@ -53,12 +53,9 @@ async function fetchWithTimeout(url) {
   }
 }
 
-function buildAddressQuery(brewery) {
-  // Leading with the brewery's own name lets Photon match its actual point
-  // in OSM (many breweries are mapped as their own POI) instead of just
-  // whatever business happens to share the same street address.
+function buildQuery(brewery, { includeName }) {
   return [
-    brewery.name,
+    includeName ? brewery.name : null,
     brewery.street,
     brewery.city,
     brewery.state_province,
@@ -67,6 +64,37 @@ function buildAddressQuery(brewery) {
   ]
     .filter(Boolean)
     .join(', ')
+}
+
+async function runQuery(query, brewery) {
+  const params = new URLSearchParams({ q: query, limit: '1' })
+  const response = await fetchWithTimeout(`https://photon.komoot.io/api/?${params}`)
+  if (!response.ok) throw new Error('geocoding request failed')
+
+  const data = await response.json()
+  const feature = data.features?.[0]
+  const [lng, lat] = feature?.geometry?.coordinates ?? []
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+
+  // Guard against a wrong-country match (e.g. an ambiguous state
+  // abbreviation like "CA" resolving to Canada instead of California) -
+  // if we know what country to expect and Photon's result disagrees,
+  // treat it as not found rather than trusting a clearly bad match.
+  const expectedCountry = normalizeCountry(brewery.country)
+  const actualCountry = normalizeCountry(feature?.properties?.country)
+  if (expectedCountry && actualCountry && expectedCountry !== actualCountry) return null
+
+  // Photon does fuzzy relevance matching - a brewery with no actual OSM
+  // presence (common for small independent ones, especially custom
+  // breweries added through this app) can still return a "result": some
+  // unrelated but similarly-worded business, sometimes in a different
+  // city entirely. If we know the expected city and it doesn't match,
+  // that's a clear enough signal to discard the match rather than trust it.
+  const expectedCity = normalizeText(brewery.city)
+  const actualCity = normalizeText(feature?.properties?.city)
+  if (expectedCity && actualCity && expectedCity !== actualCity) return null
+
+  return [lat, lng]
 }
 
 function readCache(key) {
@@ -116,8 +144,9 @@ export async function geocodeBrewery(brewery) {
     }
   }
 
-  const query = buildAddressQuery(brewery)
-  if (!query) {
+  const addressQuery = buildQuery(brewery, { includeName: false })
+  const namedQuery = buildQuery(brewery, { includeName: true })
+  if (!addressQuery && !namedQuery) {
     writeCache(brewery.id, null)
     if (isFirebaseConfigured) writeSharedGeocodeCache(brewery.id, null)
     return null
@@ -125,34 +154,20 @@ export async function geocodeBrewery(brewery) {
 
   try {
     const position = await enqueue(async () => {
-      const params = new URLSearchParams({ q: query, limit: '1' })
-      const response = await fetchWithTimeout(`https://photon.komoot.io/api/?${params}`)
-      if (!response.ok) throw new Error('geocoding request failed')
-
-      const data = await response.json()
-      const feature = data.features?.[0]
-      const [lng, lat] = feature?.geometry?.coordinates ?? []
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
-
-      // Guard against a wrong-country match (e.g. an ambiguous state
-      // abbreviation like "CA" resolving to Canada instead of California) -
-      // if we know what country to expect and Photon's result disagrees,
-      // treat it as not found rather than trusting a clearly bad match.
-      const expectedCountry = normalizeCountry(brewery.country)
-      const actualCountry = normalizeCountry(feature?.properties?.country)
-      if (expectedCountry && actualCountry && expectedCountry !== actualCountry) return null
-
-      // Photon does fuzzy relevance matching - a brewery with no actual OSM
-      // presence (common for small independent ones, especially custom
-      // breweries added through this app) can still return a "result": some
-      // unrelated but similarly-worded business, sometimes in a different
-      // city entirely. If we know the expected city and it doesn't match,
-      // that's a clear enough signal to discard the match rather than trust it.
-      const expectedCity = normalizeText(brewery.city)
-      const actualCity = normalizeText(feature?.properties?.city)
-      if (expectedCity && actualCity && expectedCity !== actualCity) return null
-
-      return [lat, lng]
+      // A precise street address geocodes reliably on its own - OSM's road
+      // and address coverage is far more complete than its business-POI
+      // coverage, so this doesn't depend on the brewery itself being
+      // individually mapped. Try that first, and only fall back to a query
+      // that includes the brewery's own name - a fuzzier match that can
+      // land on some unrelated similarly-worded place if the business
+      // genuinely isn't mapped - when there's no address to go on, or the
+      // address alone didn't resolve to anything.
+      if (addressQuery) {
+        const result = await runQuery(addressQuery, brewery)
+        if (result) return result
+      }
+      if (!namedQuery || namedQuery === addressQuery) return null
+      return runQuery(namedQuery, brewery)
     })
 
     writeCache(brewery.id, position)
