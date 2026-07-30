@@ -11,6 +11,7 @@ import {
 } from 'react-leaflet'
 import L from 'leaflet'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useEscapeKey } from '../hooks/useEscapeKey'
 import { TILE_URL, TILE_ATTRIBUTION, toPosition, formatAddress } from '../utils/leafletSetup'
 import {
   ROUTE_COLOR,
@@ -71,6 +72,8 @@ function CrawlDetailModal({ crawl, cityId, cityName, breweries, breweriesStatus,
   const [openLegKey, setOpenLegKey] = useState(null)
   const markerRefs = useRef({})
   const isMobile = useIsMobile()
+
+  useEscapeKey(onClose)
 
   const stops = useMemo(() => {
     return crawl.breweries

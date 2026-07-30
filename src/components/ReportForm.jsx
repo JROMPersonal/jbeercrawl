@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createReport } from '../api/reports'
+import { useEscapeKey } from '../hooks/useEscapeKey'
 
 const REPORT_TYPES = [
   { value: 'city_request', label: 'Request city' },
@@ -17,6 +18,8 @@ function ReportForm({ onClose }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [submitted, setSubmitted] = useState(false)
+
+  useEscapeKey(onClose)
 
   const canSave = message.trim().length > 0 && !saving
 

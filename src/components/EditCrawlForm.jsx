@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { updateCrawl } from '../api/crawls'
 import BreweryPathList from './BreweryPathList'
+import { useEscapeKey } from '../hooks/useEscapeKey'
 
 function EditCrawlForm({ crawl, breweries, breweriesStatus, onClose }) {
   const [name, setName] = useState(crawl.name)
@@ -9,6 +10,8 @@ function EditCrawlForm({ crawl, breweries, breweriesStatus, onClose }) {
   const [activeTab, setActiveTab] = useState('breweries')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+
+  useEscapeKey(onClose)
 
   const toggleBrewery = (id) => {
     setOrderedIds((prev) =>

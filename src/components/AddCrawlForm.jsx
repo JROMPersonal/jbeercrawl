@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createCrawl } from '../api/crawls'
 import BreweryPathList from './BreweryPathList'
 import CrawlPickerMap from './CrawlPickerMap'
+import { useEscapeKey } from '../hooks/useEscapeKey'
 
 function AddCrawlForm({
   cityId,
@@ -19,6 +20,8 @@ function AddCrawlForm({
   const [activeTab, setActiveTab] = useState(initialTab ?? 'breweries')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+
+  useEscapeKey(onClose)
 
   const toggleBrewery = (id) => {
     setOrderedIds((prev) =>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { usStates } from '../data/usStates'
 import { updateCustomCity } from '../api/customCities'
+import { useEscapeKey } from '../hooks/useEscapeKey'
 
 function EditCityForm({ city, onClose }) {
   const [name, setName] = useState(city.name)
@@ -8,6 +9,8 @@ function EditCityForm({ city, onClose }) {
   const [image, setImage] = useState(city.image ?? '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+
+  useEscapeKey(onClose)
 
   const canSave = name.trim().length > 0 && stateAbbr.length > 0 && !saving
 

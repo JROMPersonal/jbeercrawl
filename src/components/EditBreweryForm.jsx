@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { updateCustomBrewery } from '../api/customBreweries'
 import { isSafeUrl } from '../utils/safeUrl'
+import { useEscapeKey } from '../hooks/useEscapeKey'
 
 const BREWERY_TYPES = [
   'micro',
@@ -21,6 +22,8 @@ function EditBreweryForm({ brewery, onClose }) {
   const [websiteUrl, setWebsiteUrl] = useState(brewery.website_url ?? '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+
+  useEscapeKey(onClose)
 
   const canSave = name.trim().length > 0 && !saving
 

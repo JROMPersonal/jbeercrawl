@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { usStates } from '../data/usStates'
 import { createCustomCity } from '../api/customCities'
+import { useEscapeKey } from '../hooks/useEscapeKey'
 
 function AddCityForm({ onClose }) {
   const [name, setName] = useState('')
@@ -9,6 +10,8 @@ function AddCityForm({ onClose }) {
   const [addedBy, setAddedBy] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+
+  useEscapeKey(onClose)
 
   const canSave = name.trim().length > 0 && stateAbbr.length > 0 && !saving
 
