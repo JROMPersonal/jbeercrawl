@@ -93,6 +93,8 @@
 
 .top-bar__hamburger {
   display: none;
+  align-items: center;
+  gap: 6px;
   background: none;
   border: none;
   color: var(--text-h);
@@ -100,6 +102,10 @@
   line-height: 1;
   padding: 4px;
   cursor: pointer;
+}
+
+.top-bar__hamburger-label {
+  display: none;
 }
 
 .top-bar__main {
@@ -1330,6 +1336,22 @@
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
+    background: var(--accent-bg);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    color: var(--accent);
+    font-size: 16px;
+    padding: 6px 10px 6px 8px;
+  }
+
+  .top-bar__hamburger-label {
+    display: inline;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .top-bar__title {
+    font-size: 20px;
   }
 
   .app__divider {
@@ -1437,8 +1459,15 @@
     height: 50vh;
   }
 
+  /* Only one of the list/map panes renders at a time on mobile (switched
+     via the Crawl Breweries / Crawl Map tabs), so let it fill the full
+     body instead of splitting the space with an empty second row. */
   .crawl-detail__body {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .crawl-detail__mobile-tabs {
+    margin-bottom: 12px;
   }
 }

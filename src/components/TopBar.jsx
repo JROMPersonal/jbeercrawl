@@ -18,7 +18,8 @@ function TopBar({
           onClick={onToggleCityDrawer}
           aria-label="Toggle city list"
         >
-          ☰
+          <span aria-hidden="true">☰</span>
+          <span className="top-bar__hamburger-label">Cities</span>
         </button>
         <a className="top-bar__title" href={import.meta.env.BASE_URL}>
           <span className="top-bar__title-text">JBeer Crawl</span>

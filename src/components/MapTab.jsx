@@ -12,7 +12,8 @@ import {
 import L from 'leaflet'
 import { isSafeUrl } from '../utils/safeUrl'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { TILE_URL, TILE_ATTRIBUTION, toPosition, formatAddress } from '../utils/leafletSetup'
+import { useLocatedBreweries } from '../hooks/useLocatedBreweries'
+import { TILE_URL, TILE_ATTRIBUTION, formatAddress } from '../utils/leafletSetup'
 import {
   ROUTE_COLOR,
   TRAVEL_MODES,
@@ -89,13 +90,12 @@ function MapTab({
   const markerRefs = useRef({})
   const isMobile = useIsMobile()
 
-  const located = useMemo(
-    () =>
-      breweries
-        .map((brewery) => ({ brewery, position: toPosition(brewery) }))
-        .filter((entry) => entry.position !== null),
-    [breweries],
-  )
+  const located = useLocatedBreweries(breweries)
+  const locatedById = useMemo(() => {
+    const map = new Map()
+    for (const entry of located) map.set(entry.brewery.id, entry)
+    return map
+  }, [located])
 
   const activeCrawl = crawls?.find((crawl) => crawl.id === activeCrawlId) ?? null
 
@@ -114,19 +114,10 @@ function MapTab({
   // into one ordered stop list.
   const { stops, originalStopCount } = useMemo(() => {
     const originalStops = activeCrawl
-      ? activeCrawl.breweries
-          .map((crawlBrewery) => {
-            const brewery = breweries.find((b) => b.id === crawlBrewery.id)
-            const position = toPosition(brewery)
-            return position ? { brewery, position } : null
-          })
-          .filter(Boolean)
+      ? activeCrawl.breweries.map((crawlBrewery) => locatedById.get(crawlBrewery.id)).filter(Boolean)
       : []
 
-    const addedStops = extraStopIds
-      .map((id) => breweries.find((b) => b.id === id))
-      .map((brewery) => (brewery ? { brewery, position: toPosition(brewery) } : null))
-      .filter((entry) => entry && entry.position !== null)
+    const addedStops = extraStopIds.map((id) => locatedById.get(id)).filter(Boolean)
 
     return {
       stops: [...originalStops, ...addedStops].map((stop, index) => ({
@@ -135,7 +126,7 @@ function MapTab({
       })),
       originalStopCount: originalStops.length,
     }
-  }, [activeCrawl, breweries, extraStopIds])
+  }, [activeCrawl, locatedById, extraStopIds])
 
   const skippedStops = activeCrawl ? activeCrawl.breweries.length - originalStopCount : 0
 

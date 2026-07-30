@@ -12,7 +12,8 @@ import {
 import L from 'leaflet'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useEscapeKey } from '../hooks/useEscapeKey'
-import { TILE_URL, TILE_ATTRIBUTION, toPosition, formatAddress } from '../utils/leafletSetup'
+import { useLocatedBreweries } from '../hooks/useLocatedBreweries'
+import { TILE_URL, TILE_ATTRIBUTION, formatAddress } from '../utils/leafletSetup'
 import {
   ROUTE_COLOR,
   TRAVEL_MODES,
@@ -70,21 +71,25 @@ function CrawlDetailModal({ crawl, cityId, cityName, breweries, breweriesStatus,
   const [travelMode, setTravelMode] = useState('driving')
   const [hoveredLegKey, setHoveredLegKey] = useState(null)
   const [openLegKey, setOpenLegKey] = useState(null)
+  const [mobileTab, setMobileTab] = useState('breweries')
   const markerRefs = useRef({})
   const isMobile = useIsMobile()
 
   useEscapeKey(onClose)
 
+  const located = useLocatedBreweries(breweries)
+  const locatedById = useMemo(() => {
+    const map = new Map()
+    for (const entry of located) map.set(entry.brewery.id, entry)
+    return map
+  }, [located])
+
   const stops = useMemo(() => {
     return crawl.breweries
-      .map((crawlBrewery) => breweries.find((b) => b.id === crawlBrewery.id))
-      .map((brewery) => {
-        const position = brewery ? toPosition(brewery) : null
-        return brewery && position ? { brewery, position } : null
-      })
+      .map((crawlBrewery) => locatedById.get(crawlBrewery.id))
       .filter(Boolean)
       .map((stop, index) => ({ ...stop, stopNumber: index + 1 }))
-  }, [crawl, breweries])
+  }, [crawl, locatedById])
 
   const legs = useMemo(
     () =>
@@ -185,230 +190,268 @@ function CrawlDetailModal({ crawl, cityId, cityName, breweries, breweriesStatus,
             </p>
           )}
 
+          {isMobile && (
+            <div className="tab-bar tab-bar--modal crawl-detail__mobile-tabs">
+              <button
+                type="button"
+                className={`tab-bar__button${
+                  mobileTab === 'breweries' ? ' tab-bar__button--active' : ''
+                }`}
+                onClick={() => setMobileTab('breweries')}
+              >
+                Crawl Breweries
+              </button>
+              <button
+                type="button"
+                className={`tab-bar__button${
+                  mobileTab === 'map' ? ' tab-bar__button--active' : ''
+                }`}
+                onClick={() => setMobileTab('map')}
+              >
+                Crawl Map
+              </button>
+            </div>
+          )}
+
           <div className="crawl-detail__body">
-            <div className="crawl-detail__list">
-              {stops.map((stop) => (
-                <div
-                  key={stop.brewery.id}
-                  className={`crawl-detail__stop${
-                    hoveredBreweryId === stop.brewery.id ? ' crawl-detail__stop--hovered' : ''
-                  }`}
-                  onMouseEnter={() => {
-                    setHoveredBreweryId(stop.brewery.id)
-                    setHoverSource('list')
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredBreweryId(null)
-                    setHoverSource(null)
-                  }}
-                  onClick={() => {
-                    const marker = markerRefs.current[stop.brewery.id]
-                    if (!marker) return
-                    marker.closeTooltip()
-                    if (marker.isPopupOpen()) {
-                      marker.closePopup()
-                      setHoveredBreweryId(null)
-                      setHoverSource(null)
-                    } else {
-                      marker.openPopup()
-                      // On touch devices there's no real onMouseEnter, so tapping
-                      // wouldn't otherwise trigger the marker glow or the
-                      // pan-into-view assist below - set the same state a hover
-                      // would so tapping gets full parity with hovering.
+            {(!isMobile || mobileTab === 'breweries') && (
+              <div className="crawl-detail__list">
+                {stops.map((stop) => (
+                  <div
+                    key={stop.brewery.id}
+                    className={`crawl-detail__stop${
+                      hoveredBreweryId === stop.brewery.id ? ' crawl-detail__stop--hovered' : ''
+                    }`}
+                    onMouseEnter={() => {
                       setHoveredBreweryId(stop.brewery.id)
                       setHoverSource('list')
-                    }
-                  }}
-                >
-                  <span className="crawl-detail__stop-number">{stop.stopNumber}</span>
-                  <BreweryCard brewery={stop.brewery} />
-                </div>
-              ))}
-              {stops.length === 0 && (
-                <p className="city-panel__message">
-                  None of this crawl's breweries have location data to show.
-                </p>
-              )}
-            </div>
-
-            <div className="crawl-detail__map">
-              <div className="crawl-detail__map-toolbar">
-                <div className="crawl-detail__map-toolbar-left">
-                  {stops.length >= 2 && (
-                    <a
-                      className="map-tab__gmaps-link"
-                      href={buildGoogleMapsUrl(stops, travelMode)}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Open in Google Maps ↗
-                    </a>
-                  )}
-                  <label className="map-tab__route-select">
-                    <span>Mode:</span>
-                    <select
-                      value={travelMode}
-                      onChange={(event) => setTravelMode(event.target.value)}
-                    >
-                      {TRAVEL_MODES.map((mode) => (
-                        <option key={mode.value} value={mode.value}>
-                          {mode.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                <span className="map-tab__route-stats">
-                  {stops.length} brewer{stops.length === 1 ? 'y' : 'ies'}
-                  {legs.length > 0 && <> · {totalMiles.toFixed(1)} mi total</>}
-                </span>
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredBreweryId(null)
+                      setHoverSource(null)
+                    }}
+                    onClick={() => {
+                      const marker = markerRefs.current[stop.brewery.id]
+                      if (!marker) return
+                      marker.closeTooltip()
+                      if (marker.isPopupOpen()) {
+                        marker.closePopup()
+                        setHoveredBreweryId(null)
+                        setHoverSource(null)
+                      } else {
+                        marker.openPopup()
+                        // On touch devices there's no real onMouseEnter, so tapping
+                        // wouldn't otherwise trigger the marker glow or the
+                        // pan-into-view assist below - set the same state a hover
+                        // would so tapping gets full parity with hovering.
+                        setHoveredBreweryId(stop.brewery.id)
+                        setHoverSource('list')
+                      }
+                    }}
+                  >
+                    <span className="crawl-detail__stop-number">{stop.stopNumber}</span>
+                    <BreweryCard brewery={stop.brewery} />
+                  </div>
+                ))}
+                {stops.length === 0 && (
+                  <p className="city-panel__message">
+                    None of this crawl's breweries have location data to show.
+                  </p>
+                )}
               </div>
+            )}
 
-              {routingStatus === 'loading' && (
-                <p className="map-tab__note">Calculating {travelModeLabel} directions…</p>
-              )}
-
-              {bounds && (
-                <div
-                  className={`crawl-detail__map-container${
-                    (isMobile && legs.length > 0) || hoveredLegKey || openLegKey
-                      ? ' map-tab__container--dimmed'
-                      : ''
-                  }`}
-                >
-                  {routingStatus === 'loading' && (
-                    <div className="map-tab__loading-overlay">
-                      <img
-                        src={`${import.meta.env.BASE_URL}jbeercrawl-icon.png`}
-                        alt=""
-                        className="map-tab__loading-icon"
-                      />
-                    </div>
-                  )}
-
-                  <MapContainer center={bounds.getCenter()} zoom={12} scrollWheelZoom>
-                    <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
-                    <MapFitBounds bounds={bounds} triggerKey={crawl.id} />
-                    <KeepHoveredMarkerVisible hoveredStop={hoveredStop} />
-                    <CloseOnMapClick onClose={() => setOpenLegKey(null)} />
-
-                    {stops.map(({ brewery, position, stopNumber }) => (
-                      <Marker
-                        key={brewery.id}
-                        position={position}
-                        icon={stopIcon(stopNumber, hoveredBreweryId === brewery.id)}
-                        ref={(marker) => {
-                          markerRefs.current[brewery.id] = marker
-                        }}
-                        eventHandlers={{
-                          click: () => setOpenLegKey(null),
-                          mouseover: () => {
-                            setHoveredBreweryId(brewery.id)
-                            setHoverSource('marker')
-                          },
-                          mouseout: () => {
-                            setHoveredBreweryId(null)
-                            setHoverSource(null)
-                          },
-                          popupclose: () =>
-                            setHoveredBreweryId((prev) => (prev === brewery.id ? null : prev)),
-                        }}
+            {(!isMobile || mobileTab === 'map') && (
+              <div className="crawl-detail__map">
+                <div className="crawl-detail__map-toolbar">
+                  <div className="crawl-detail__map-toolbar-left">
+                    {stops.length >= 2 && (
+                      <a
+                        className="map-tab__gmaps-link"
+                        href={buildGoogleMapsUrl(stops, travelMode)}
+                        target="_blank"
+                        rel="noreferrer"
                       >
-                        <Tooltip direction="top" offset={[0, -14]}>
-                          <strong>{brewery.name}</strong>
-                          {formatAddress(brewery) && <div>{formatAddress(brewery)}</div>}
-                        </Tooltip>
-                        <Popup>
-                          <strong>
-                            {stopNumber}. {brewery.name}
-                          </strong>
-                          {formatAddress(brewery) && <div>{formatAddress(brewery)}</div>}
-                        </Popup>
-                      </Marker>
-                    ))}
+                        Open in Google Maps ↗
+                      </a>
+                    )}
+                    <label className="map-tab__route-select">
+                      <span>Mode:</span>
+                      <select
+                        value={travelMode}
+                        onChange={(event) => setTravelMode(event.target.value)}
+                      >
+                        {TRAVEL_MODES.map((mode) => (
+                          <option key={mode.value} value={mode.value}>
+                            {mode.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <span className="map-tab__route-stats">
+                    {stops.length} brewer{stops.length === 1 ? 'y' : 'ies'}
+                    {legs.length > 0 && <> · {totalMiles.toFixed(1)} mi total</>}
+                  </span>
+                </div>
 
-                    {legs.map((leg) => {
-                      const key = legKey(leg)
-                      const driving = drivingRoutes[key]
-                      const positions = driving?.positions ?? [leg.from.position, leg.to.position]
-                      return (
-                        <Polyline
-                          key={`glow-${key}`}
-                          positions={positions}
-                          ref={(layer) => {
-                            const el = layer?.getElement?.()
-                            if (el) el.style.pointerEvents = 'none'
-                          }}
-                          pathOptions={{
-                            color: ROUTE_COLOR,
-                            weight: 18,
-                            // On mobile there's no real hover, so the whole
-                            // route stays glowing rather than only lighting
-                            // up on tap.
-                            opacity: isMobile || key === hoveredLegKey ? 0.45 : 0,
-                          }}
+                {routingStatus === 'loading' && (
+                  <p className="map-tab__note">Calculating {travelModeLabel} directions…</p>
+                )}
+
+                {bounds && (
+                  <div
+                    className={`crawl-detail__map-container${
+                      (isMobile && legs.length > 0) || hoveredLegKey || openLegKey
+                        ? ' map-tab__container--dimmed'
+                        : ''
+                    }`}
+                  >
+                    {routingStatus === 'loading' && (
+                      <div className="map-tab__loading-overlay">
+                        <img
+                          src={`${import.meta.env.BASE_URL}jbeercrawl-icon.png`}
+                          alt=""
+                          className="map-tab__loading-icon"
                         />
-                      )
-                    })}
+                      </div>
+                    )}
 
-                    {legs.map((leg) => {
-                      const key = legKey(leg)
-                      const driving = drivingRoutes[key]
-                      const positions = driving?.positions ?? [leg.from.position, leg.to.position]
-                      const isHighlighted = isMobile || key === hoveredLegKey
-                      return (
-                        <Polyline
-                          key={`line-${key}`}
-                          positions={positions}
-                          pathOptions={{
-                            color: ROUTE_COLOR,
-                            weight: isHighlighted ? 7 : 5,
-                            opacity: isHighlighted ? 1 : 0.9,
+                    <MapContainer center={bounds.getCenter()} zoom={12} scrollWheelZoom>
+                      <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
+                      <MapFitBounds bounds={bounds} triggerKey={crawl.id} />
+                      <KeepHoveredMarkerVisible hoveredStop={hoveredStop} />
+                      <CloseOnMapClick onClose={() => setOpenLegKey(null)} />
+
+                      {stops.map(({ brewery, position, stopNumber }) => (
+                        <Marker
+                          key={brewery.id}
+                          position={position}
+                          icon={stopIcon(stopNumber, hoveredBreweryId === brewery.id)}
+                          ref={(marker) => {
+                            markerRefs.current[brewery.id] = marker
                           }}
-                        />
-                      )
-                    })}
-
-                    {legs.map((leg) => {
-                      const key = legKey(leg)
-                      const driving = drivingRoutes[key]
-                      const positions = driving?.positions ?? [leg.from.position, leg.to.position]
-                      const distance = driving?.distanceMiles ?? leg.distance
-                      const label = driving ? travelModeLabel : 'straight-line'
-
-                      return (
-                        <Polyline
-                          key={`hit-${key}`}
-                          positions={positions}
-                          pathOptions={{ color: ROUTE_COLOR, weight: 20, opacity: 0 }}
                           eventHandlers={{
-                            click: () => setOpenLegKey((prev) => (prev === key ? null : key)),
-                            mouseover: () => setHoveredLegKey(key),
-                            mouseout: () => setHoveredLegKey(null),
+                            click: () => setOpenLegKey(null),
+                            mouseover: () => {
+                              setHoveredBreweryId(brewery.id)
+                              setHoverSource('marker')
+                            },
+                            mouseout: () => {
+                              setHoveredBreweryId(null)
+                              setHoverSource(null)
+                            },
+                            popupclose: () =>
+                              setHoveredBreweryId((prev) => (prev === brewery.id ? null : prev)),
                           }}
                         >
-                          <Tooltip sticky className="route-leg-tooltip">
-                            {leg.from.brewery.name} → {leg.to.brewery.name}: {distance.toFixed(1)}{' '}
-                            mi ({label})
+                          <Tooltip direction="top" offset={[0, -14]}>
+                            <strong>{brewery.name}</strong>
+                            {formatAddress(brewery) && <div>{formatAddress(brewery)}</div>}
                           </Tooltip>
-                        </Polyline>
-                      )
-                    })}
+                          <Popup>
+                            <strong>
+                              {stopNumber}. {brewery.name}
+                            </strong>
+                            {formatAddress(brewery) && <div>{formatAddress(brewery)}</div>}
+                          </Popup>
+                        </Marker>
+                      ))}
 
-                    {openLeg && openLegPositions && (
-                      <Popup
-                        position={pathMidpoint(openLegPositions)}
-                        eventHandlers={{ remove: () => setOpenLegKey(null) }}
-                      >
-                        {openLeg.from.brewery.name} → {openLeg.to.brewery.name}:{' '}
-                        {(drivingRoutes[openLegKey]?.distanceMiles ?? openLeg.distance).toFixed(1)}{' '}
-                        mi ({drivingRoutes[openLegKey] ? travelModeLabel : 'straight-line'})
-                      </Popup>
-                    )}
-                  </MapContainer>
-                </div>
-              )}
-            </div>
+                      {legs.map((leg) => {
+                        const key = legKey(leg)
+                        const driving = drivingRoutes[key]
+                        const positions = driving?.positions ?? [
+                          leg.from.position,
+                          leg.to.position,
+                        ]
+                        return (
+                          <Polyline
+                            key={`glow-${key}`}
+                            positions={positions}
+                            ref={(layer) => {
+                              const el = layer?.getElement?.()
+                              if (el) el.style.pointerEvents = 'none'
+                            }}
+                            pathOptions={{
+                              color: ROUTE_COLOR,
+                              weight: 18,
+                              // On mobile there's no real hover, so the whole
+                              // route stays glowing rather than only lighting
+                              // up on tap.
+                              opacity: isMobile || key === hoveredLegKey ? 0.45 : 0,
+                            }}
+                          />
+                        )
+                      })}
+
+                      {legs.map((leg) => {
+                        const key = legKey(leg)
+                        const driving = drivingRoutes[key]
+                        const positions = driving?.positions ?? [
+                          leg.from.position,
+                          leg.to.position,
+                        ]
+                        const isHighlighted = isMobile || key === hoveredLegKey
+                        return (
+                          <Polyline
+                            key={`line-${key}`}
+                            positions={positions}
+                            pathOptions={{
+                              color: ROUTE_COLOR,
+                              weight: isHighlighted ? 7 : 5,
+                              opacity: isHighlighted ? 1 : 0.9,
+                            }}
+                          />
+                        )
+                      })}
+
+                      {legs.map((leg) => {
+                        const key = legKey(leg)
+                        const driving = drivingRoutes[key]
+                        const positions = driving?.positions ?? [
+                          leg.from.position,
+                          leg.to.position,
+                        ]
+                        const distance = driving?.distanceMiles ?? leg.distance
+                        const label = driving ? travelModeLabel : 'straight-line'
+
+                        return (
+                          <Polyline
+                            key={`hit-${key}`}
+                            positions={positions}
+                            pathOptions={{ color: ROUTE_COLOR, weight: 20, opacity: 0 }}
+                            eventHandlers={{
+                              click: () => setOpenLegKey((prev) => (prev === key ? null : key)),
+                              mouseover: () => setHoveredLegKey(key),
+                              mouseout: () => setHoveredLegKey(null),
+                            }}
+                          >
+                            <Tooltip sticky className="route-leg-tooltip">
+                              {leg.from.brewery.name} → {leg.to.brewery.name}:{' '}
+                              {distance.toFixed(1)} mi ({label})
+                            </Tooltip>
+                          </Polyline>
+                        )
+                      })}
+
+                      {openLeg && openLegPositions && (
+                        <Popup
+                          position={pathMidpoint(openLegPositions)}
+                          eventHandlers={{ remove: () => setOpenLegKey(null) }}
+                        >
+                          {openLeg.from.brewery.name} → {openLeg.to.brewery.name}:{' '}
+                          {(
+                            drivingRoutes[openLegKey]?.distanceMiles ?? openLeg.distance
+                          ).toFixed(1)}{' '}
+                          mi ({drivingRoutes[openLegKey] ? travelModeLabel : 'straight-line'})
+                        </Popup>
+                      )}
+                    </MapContainer>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

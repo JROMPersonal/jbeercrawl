@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { MapContainer, TileLayer, Marker, Polyline, Popup } from 'react-leaflet'
 import L from 'leaflet'
-import { TILE_URL, TILE_ATTRIBUTION, toPosition, formatAddress } from '../utils/leafletSetup'
+import { TILE_URL, TILE_ATTRIBUTION, formatAddress } from '../utils/leafletSetup'
 import { ROUTE_COLOR } from '../utils/routeUtils'
+import { useLocatedBreweries } from '../hooks/useLocatedBreweries'
 import MapFitBounds from './MapFitBounds'
 
 function stopIcon(number) {
@@ -17,13 +18,7 @@ function stopIcon(number) {
 function CrawlPickerMap({ breweries, selectedIds, onToggle }) {
   const [hoveredBreweryId, setHoveredBreweryId] = useState(null)
 
-  const located = useMemo(
-    () =>
-      breweries
-        .map((brewery) => ({ brewery, position: toPosition(brewery) }))
-        .filter((entry) => entry.position !== null),
-    [breweries],
-  )
+  const located = useLocatedBreweries(breweries)
 
   if (located.length === 0) {
     return (
