@@ -13,7 +13,9 @@ function CityPanel({
   onTabChange,
   activeCrawlId,
   onActiveCrawlIdChange,
-  onSelectCrawl,
+  mapFocusRequest,
+  onMapFocusHandled,
+  onSelectBrewery,
 }) {
   const { breweries, status } = useBreweries(city)
   const { crawls, status: crawlsStatus } = useCrawls(city)
@@ -26,9 +28,13 @@ function CityPanel({
     return (
       <main className="city-panel">
         <div className="city-panel__content">
-          <p className="city-panel__message">
-            Pick a city on the left to see its breweries.
-          </p>
+          {tab === 'usa-map' ? (
+            <UsaMapTab breweries={allBreweries} status={allBreweriesStatus} />
+          ) : (
+            <p className="city-panel__message">
+              Pick a city on the left to see its breweries.
+            </p>
+          )}
         </div>
       </main>
     )
@@ -62,7 +68,12 @@ function CityPanel({
 
       <div className="city-panel__content">
         {tab === 'breweries' && (
-          <BreweriesTab city={city} breweries={breweries} status={status} />
+          <BreweriesTab
+            city={city}
+            breweries={breweries}
+            status={status}
+            onSelectBrewery={onSelectBrewery}
+          />
         )}
         {tab === 'crawls' && (
           <CrawlsTab
@@ -71,18 +82,20 @@ function CityPanel({
             crawlsStatus={crawlsStatus}
             breweries={breweries}
             breweriesStatus={status}
-            onSelectCrawl={onSelectCrawl}
           />
         )}
         {tab === 'map' && (
           <MapTab
             cityId={city.id}
+            cityName={`${city.name}, ${city.stateAbbr}`}
             breweries={breweries}
             status={status}
             crawls={crawls}
             crawlsStatus={crawlsStatus}
             activeCrawlId={activeCrawlId}
             onActiveCrawlIdChange={onActiveCrawlIdChange}
+            focusRequest={mapFocusRequest}
+            onFocusHandled={onMapFocusHandled}
           />
         )}
         {tab === 'usa-map' && (

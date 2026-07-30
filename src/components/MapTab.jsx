@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   MapContainer,
   TileLayer,
@@ -6,84 +6,34 @@ import {
   Polyline,
   Popup,
   Tooltip,
+  useMap,
   useMapEvents,
 } from 'react-leaflet'
 import L from 'leaflet'
 import { isSafeUrl } from '../utils/safeUrl'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { TILE_URL, TILE_ATTRIBUTION, toPosition, formatAddress } from '../utils/leafletSetup'
+import {
+  ROUTE_COLOR,
+  TRAVEL_MODES,
+  haversineMiles,
+  buildGoogleMapsUrl,
+  fetchRoute,
+  legKey,
+  pathMidpoint,
+} from '../utils/routeUtils'
 import AddCrawlForm from './AddCrawlForm'
 import MapFitBounds from './MapFitBounds'
 
-const ROUTE_COLOR = '#00b8ff'
-const EARTH_RADIUS_MILES = 3958.8
-const METERS_PER_MILE = 1609.34
-
-function stopIcon(number) {
+function stopIcon(number, highlighted) {
   return L.divIcon({
     className: 'crawl-stop-icon',
-    html: `<div class="crawl-stop-icon__inner">${number}</div>`,
+    html: `<div class="crawl-stop-icon__inner${
+      highlighted ? ' crawl-stop-icon__inner--hovered' : ''
+    }">${number}</div>`,
     iconSize: [28, 28],
     iconAnchor: [14, 14],
   })
-}
-
-function haversineMiles([lat1, lng1], [lat2, lng2]) {
-  const toRad = (deg) => (deg * Math.PI) / 180
-  const dLat = toRad(lat2 - lat1)
-  const dLng = toRad(lng2 - lng1)
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
-  return EARTH_RADIUS_MILES * 2 * Math.asin(Math.sqrt(a))
-}
-
-function pathMidpoint(positions) {
-  if (positions.length === 2) {
-    const [[lat1, lng1], [lat2, lng2]] = positions
-    return [(lat1 + lat2) / 2, (lng1 + lng2) / 2]
-  }
-  return positions[Math.floor(positions.length / 2)]
-}
-
-function legKey(leg) {
-  return `${leg.from.brewery.id}->${leg.to.brewery.id}`
-}
-
-function buildGoogleMapsUrl(stops) {
-  const [originLat, originLng] = stops[0].position
-  const [destLat, destLng] = stops[stops.length - 1].position
-  const waypoints = stops
-    .slice(1, -1)
-    .map(({ position }) => `${position[0]},${position[1]}`)
-    .join('|')
-
-  const params = new URLSearchParams({
-    api: '1',
-    origin: `${originLat},${originLng}`,
-    destination: `${destLat},${destLng}`,
-    travelmode: 'driving',
-  })
-  if (waypoints) params.set('waypoints', waypoints)
-
-  return `https://www.google.com/maps/dir/?${params.toString()}`
-}
-
-// Uses OSRM's free public routing server (no API key) to fetch a real
-// driving path between two points. Positions are [lat, lng]; OSRM expects
-// {lng},{lat} in the URL and returns geometry as [lng, lat] pairs.
-async function fetchDrivingRoute(from, to) {
-  const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`
-  const response = await fetch(url)
-  if (!response.ok) throw new Error('routing request failed')
-
-  const data = await response.json()
-  const route = data.routes?.[0]
-  if (!route) throw new Error('no route found')
-
-  return {
-    positions: route.geometry.coordinates.map(([lng, lat]) => [lat, lng]),
-    distanceMiles: route.distance / METERS_PER_MILE,
-  }
 }
 
 function CloseOnMapClick({ onClose }) {
@@ -91,14 +41,40 @@ function CloseOnMapClick({ onClose }) {
   return null
 }
 
+// Lets code outside the map (the Breweries tab) "click" a specific brewery's
+// marker on demand - pans/zooms to it and opens its popup, same as if the
+// user had clicked it directly.
+function FocusBrewery({ focusRequest, located, markerRefs, onHandled }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!focusRequest) return
+    const entry = located.find((item) => item.brewery.id === focusRequest.breweryId)
+    if (!entry) return
+
+    map.setView(entry.position, Math.max(map.getZoom(), 15))
+    markerRefs.current[focusRequest.breweryId]?.openPopup()
+    // Consume the request so it doesn't get replayed if this MapTab instance
+    // (or a later one, e.g. after switching cities and back) re-renders.
+    onHandled?.(focusRequest.breweryId)
+    // markerRefs is a stable ref object - only focusRequest/located should retrigger this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusRequest, located, map])
+
+  return null
+}
+
 function MapTab({
   cityId,
+  cityName,
   breweries,
   status,
   crawls,
   crawlsStatus,
   activeCrawlId,
   onActiveCrawlIdChange,
+  focusRequest,
+  onFocusHandled,
 }) {
   const [drivingRoutes, setDrivingRoutes] = useState({})
   const [routingStatus, setRoutingStatus] = useState('idle')
@@ -106,7 +82,12 @@ function MapTab({
   const [extraStopIds, setExtraStopIds] = useState([])
   const [showSaveForm, setShowSaveForm] = useState(false)
   const [hoveredBreweryId, setHoveredBreweryId] = useState(null)
+  const [hoveredLegKey, setHoveredLegKey] = useState(null)
   const [panSignal, setPanSignal] = useState(0)
+  const [focusedBreweryId, setFocusedBreweryId] = useState(null)
+  const [travelMode, setTravelMode] = useState('driving')
+  const markerRefs = useRef({})
+  const isMobile = useIsMobile()
 
   const located = useMemo(
     () =>
@@ -178,12 +159,11 @@ function MapTab({
     }
 
     let cancelled = false
-    let delayTimeoutId
     setRoutingStatus('loading')
 
     Promise.all(
       legs.map((leg) =>
-        fetchDrivingRoute(leg.from.position, leg.to.position)
+        fetchRoute(leg.from.position, leg.to.position, travelMode)
           .then((result) => ({ key: legKey(leg), result }))
           .catch(() => ({ key: legKey(leg), result: null })),
       ),
@@ -191,22 +171,14 @@ function MapTab({
       if (cancelled) return
       const next = {}
       for (const { key, result } of results) next[key] = result
-
-      // Hold the loading overlay for an extra second even if OSRM responds
-      // instantly - swapping straight lines for the real driving path
-      // immediately looked like a glitch rather than a load.
-      delayTimeoutId = setTimeout(() => {
-        if (cancelled) return
-        setDrivingRoutes(next)
-        setRoutingStatus('done')
-      }, 1000)
+      setDrivingRoutes(next)
+      setRoutingStatus('done')
     })
 
     return () => {
       cancelled = true
-      clearTimeout(delayTimeoutId)
     }
-  }, [legs])
+  }, [legs, travelMode])
 
   if (status === 'loading') {
     return <p className="city-panel__message">Loading breweries…</p>
@@ -235,7 +207,19 @@ function MapTab({
   const allBounds = L.latLngBounds(located.map((entry) => entry.position))
   const routeBounds = stops.length > 0 ? L.latLngBounds(stops.map((s) => s.position)) : null
   const activeBounds = routeBounds ?? allBounds
+
+  // If a brewery's popup is still open (e.g. focused from the Breweries tab)
+  // when the user picks a different crawl route, keep it in view alongside
+  // the route instead of letting the fit-bounds and the popup's own
+  // auto-pan fight each other.
+  const focusedEntry = focusedBreweryId
+    ? located.find((entry) => entry.brewery.id === focusedBreweryId)
+    : null
+  if (focusedEntry) activeBounds.extend(focusedEntry.position)
+
   const initialCenter = allBounds.getCenter()
+  const travelModeLabel =
+    TRAVEL_MODES.find((mode) => mode.value === travelMode)?.label.toLowerCase() ?? 'driving'
 
   const openLeg = legs.find((leg) => legKey(leg) === openLegKey) ?? null
   let openLegPositions = null
@@ -268,10 +252,21 @@ function MapTab({
           </select>
         </label>
 
+        <label className="map-tab__route-select">
+          <span>Mode:</span>
+          <select value={travelMode} onChange={(event) => setTravelMode(event.target.value)}>
+            {TRAVEL_MODES.map((mode) => (
+              <option key={mode.value} value={mode.value}>
+                {mode.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
         {stops.length >= 2 && (
           <a
             className="map-tab__gmaps-link"
-            href={buildGoogleMapsUrl(stops)}
+            href={buildGoogleMapsUrl(stops, travelMode)}
             target="_blank"
             rel="noreferrer"
           >
@@ -306,7 +301,7 @@ function MapTab({
       )}
 
       {routingStatus === 'loading' && (
-        <p className="map-tab__note">Calculating driving directions…</p>
+        <p className="map-tab__note">Calculating {travelModeLabel} directions…</p>
       )}
 
       {extraStopIds.length > 0 && (
@@ -340,7 +335,13 @@ function MapTab({
         </>
       )}
 
-      <div className="map-tab__container">
+      <div
+        className={`map-tab__container${
+          (isMobile && legs.length > 0) || hoveredLegKey || openLegKey
+            ? ' map-tab__container--dimmed'
+            : ''
+        }`}
+      >
         <button
           type="button"
           className="map-tab__auto-pan"
@@ -369,10 +370,15 @@ function MapTab({
               key={brewery.id}
               position={position}
               opacity={hoveredBreweryId !== brewery.id ? 0.75 : 1}
+              ref={(marker) => {
+                markerRefs.current[brewery.id] = marker
+              }}
               eventHandlers={{
                 click: () => setOpenLegKey(null),
                 mouseover: () => setHoveredBreweryId(brewery.id),
                 mouseout: () => setHoveredBreweryId(null),
+                popupclose: () =>
+                  setFocusedBreweryId((prev) => (prev === brewery.id ? null : prev)),
               }}
             >
               <Tooltip>
@@ -406,9 +412,22 @@ function MapTab({
             <Marker
               key={brewery.id}
               position={position}
-              icon={stopIcon(stopNumber)}
-              eventHandlers={{ click: () => setOpenLegKey(null) }}
+              icon={stopIcon(stopNumber, hoveredBreweryId === brewery.id)}
+              ref={(marker) => {
+                markerRefs.current[brewery.id] = marker
+              }}
+              eventHandlers={{
+                click: () => setOpenLegKey(null),
+                mouseover: () => setHoveredBreweryId(brewery.id),
+                mouseout: () => setHoveredBreweryId(null),
+                popupclose: () =>
+                  setFocusedBreweryId((prev) => (prev === brewery.id ? null : prev)),
+              }}
             >
+              <Tooltip>
+                <strong>{brewery.name}</strong>
+                {formatAddress(brewery) && <div>{formatAddress(brewery)}</div>}
+              </Tooltip>
               <Popup>
                 <strong>
                   {stopNumber}. {brewery.name}
@@ -425,14 +444,58 @@ function MapTab({
             </Marker>
           ))}
 
+          <FocusBrewery
+            focusRequest={focusRequest}
+            located={located}
+            markerRefs={markerRefs}
+            onHandled={(breweryId) => {
+              setFocusedBreweryId(breweryId)
+              onFocusHandled?.()
+            }}
+          />
+
           {legs.map((leg) => {
-            const driving = drivingRoutes[legKey(leg)]
+            const key = legKey(leg)
+            const driving = drivingRoutes[key]
             const positions = driving?.positions ?? [leg.from.position, leg.to.position]
             return (
               <Polyline
-                key={`line-${legKey(leg)}`}
+                key={`glow-${key}`}
                 positions={positions}
-                pathOptions={{ color: ROUTE_COLOR, weight: 5, opacity: 0.9 }}
+                // react-leaflet doesn't apply `interactive` from pathOptions at
+                // creation time, so this stroke would otherwise still swallow
+                // hover events (fighting the hit-detection line below it for
+                // hoveredLegKey and causing rapid flicker). Reach into the
+                // real Leaflet layer and disable pointer events directly.
+                ref={(layer) => {
+                  const el = layer?.getElement?.()
+                  if (el) el.style.pointerEvents = 'none'
+                }}
+                pathOptions={{
+                  color: ROUTE_COLOR,
+                  weight: 18,
+                  // On mobile there's no real hover, so the whole route stays
+                  // glowing/highlighted rather than only lighting up on tap.
+                  opacity: isMobile || key === hoveredLegKey ? 0.45 : 0,
+                }}
+              />
+            )
+          })}
+
+          {legs.map((leg) => {
+            const key = legKey(leg)
+            const driving = drivingRoutes[key]
+            const positions = driving?.positions ?? [leg.from.position, leg.to.position]
+            const isHighlighted = isMobile || key === hoveredLegKey
+            return (
+              <Polyline
+                key={`line-${key}`}
+                positions={positions}
+                pathOptions={{
+                  color: ROUTE_COLOR,
+                  weight: isHighlighted ? 7 : 5,
+                  opacity: isHighlighted ? 1 : 0.9,
+                }}
               />
             )
           })}
@@ -442,7 +505,7 @@ function MapTab({
             const driving = drivingRoutes[key]
             const positions = driving?.positions ?? [leg.from.position, leg.to.position]
             const distance = driving?.distanceMiles ?? leg.distance
-            const label = driving ? 'driving' : 'straight-line'
+            const label = driving ? travelModeLabel : 'straight-line'
 
             return (
               <Polyline
@@ -451,9 +514,11 @@ function MapTab({
                 pathOptions={{ color: ROUTE_COLOR, weight: 20, opacity: 0 }}
                 eventHandlers={{
                   click: () => setOpenLegKey((prev) => (prev === key ? null : key)),
+                  mouseover: () => setHoveredLegKey(key),
+                  mouseout: () => setHoveredLegKey(null),
                 }}
               >
-                <Tooltip sticky>
+                <Tooltip sticky className="route-leg-tooltip">
                   {leg.from.brewery.name} → {leg.to.brewery.name}: {distance.toFixed(1)} mi (
                   {label})
                 </Tooltip>
@@ -468,7 +533,7 @@ function MapTab({
             >
               {openLeg.from.brewery.name} → {openLeg.to.brewery.name}:{' '}
               {(drivingRoutes[openLegKey]?.distanceMiles ?? openLeg.distance).toFixed(1)} mi (
-              {drivingRoutes[openLegKey] ? 'driving' : 'straight-line'})
+              {drivingRoutes[openLegKey] ? travelModeLabel : 'straight-line'})
             </Popup>
           )}
         </MapContainer>
@@ -477,6 +542,7 @@ function MapTab({
       {showSaveForm && (
         <AddCrawlForm
           cityId={cityId}
+          cityName={cityName}
           breweries={breweries}
           breweriesStatus={status}
           initialOrderedIds={stops.map((stop) => stop.brewery.id)}

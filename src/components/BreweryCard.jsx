@@ -15,11 +15,26 @@ function formatPhone(phone) {
   return phone
 }
 
-function BreweryCard({ brewery }) {
+function BreweryCard({ brewery, onSelect }) {
   const address = formatAddress(brewery)
 
+  const handleKeyDown = (event) => {
+    if (!onSelect) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onSelect(brewery)
+    }
+  }
+
   return (
-    <div className="brewery-card">
+    <div
+      className={`brewery-card${onSelect ? ' brewery-card--clickable' : ''}`}
+      role={onSelect ? 'button' : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      onClick={onSelect ? () => onSelect(brewery) : undefined}
+      onKeyDown={onSelect ? handleKeyDown : undefined}
+      title={onSelect ? 'View this brewery on the map' : undefined}
+    >
       <div className="brewery-card__header">
         <h3 className="brewery-card__name">{brewery.name}</h3>
         <div className="brewery-card__badges">
@@ -34,7 +49,7 @@ function BreweryCard({ brewery }) {
 
       {address && <p className="brewery-card__address">{address}</p>}
 
-      <div className="brewery-card__links">
+      <div className="brewery-card__links" onClick={(event) => event.stopPropagation()}>
         {brewery.phone && (
           <a href={`tel:${brewery.phone.replace(/\D/g, '')}`}>
             {formatPhone(brewery.phone)}

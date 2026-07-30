@@ -3,7 +3,7 @@ import { isFirebaseConfigured } from '../firebase'
 import BreweryCard from './BreweryCard'
 import AddBreweryForm from './AddBreweryForm'
 
-function BreweriesTab({ city, breweries, status }) {
+function BreweriesTab({ city, breweries, status, onSelectBrewery }) {
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
 
@@ -50,7 +50,7 @@ function BreweriesTab({ city, breweries, status }) {
       {status === 'ready' && filteredBreweries.length > 0 && (
         <div className="brewery-grid">
           {filteredBreweries.map((brewery) => (
-            <BreweryCard key={brewery.id} brewery={brewery} />
+            <BreweryCard key={brewery.id} brewery={brewery} onSelect={onSelectBrewery} />
           ))}
         </div>
       )}

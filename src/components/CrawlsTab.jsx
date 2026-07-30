@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import CrawlCard from './CrawlCard'
 import AddCrawlForm from './AddCrawlForm'
+import CrawlDetailModal from './CrawlDetailModal'
 
-function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus, onSelectCrawl }) {
+function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus }) {
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [viewingCrawl, setViewingCrawl] = useState(null)
 
   if (crawlsStatus === 'unconfigured') {
     return (
@@ -64,7 +66,7 @@ function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus, onS
       {crawlsStatus === 'ready' && filteredCrawls.length > 0 && (
         <div className="crawl-grid">
           {filteredCrawls.map((crawl) => (
-            <CrawlCard key={crawl.id} crawl={crawl} onSelect={onSelectCrawl} />
+            <CrawlCard key={crawl.id} crawl={crawl} onSelect={setViewingCrawl} />
           ))}
         </div>
       )}
@@ -72,9 +74,21 @@ function CrawlsTab({ city, crawls, crawlsStatus, breweries, breweriesStatus, onS
       {showForm && (
         <AddCrawlForm
           cityId={city.id}
+          cityName={`${city.name}, ${city.stateAbbr}`}
           breweries={breweries}
           breweriesStatus={breweriesStatus}
           onClose={() => setShowForm(false)}
+        />
+      )}
+
+      {viewingCrawl && (
+        <CrawlDetailModal
+          crawl={viewingCrawl}
+          cityId={city.id}
+          cityName={`${city.name}, ${city.stateAbbr}`}
+          breweries={breweries}
+          breweriesStatus={breweriesStatus}
+          onClose={() => setViewingCrawl(null)}
         />
       )}
     </div>

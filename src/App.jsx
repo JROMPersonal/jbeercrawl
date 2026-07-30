@@ -14,6 +14,7 @@ function App() {
   const [search, setSearch] = useState('')
   const [tab, setTab] = useState('breweries')
   const [activeCrawlId, setActiveCrawlId] = useState('')
+  const [mapFocusRequest, setMapFocusRequest] = useState(null)
   const [view, setView] = useState('about')
   const [showReportForm, setShowReportForm] = useState(false)
   const [showCityDrawer, setShowCityDrawer] = useState(false)
@@ -24,19 +25,21 @@ function App() {
     setSelectedCityId(city.id)
     setTab('breweries')
     setActiveCrawlId('')
+    setMapFocusRequest(null)
     setShowCityDrawer(false)
     setView('app')
-  }
-
-  const handleSelectCrawl = (crawl) => {
-    setActiveCrawlId(crawl.id)
-    setTab('map')
   }
 
   const handleOpenAllCitiesMap = () => {
     setTab('usa-map')
     setShowCityDrawer(false)
     setView('app')
+  }
+
+  const handleSelectBrewery = (brewery) => {
+    setMapFocusRequest({ breweryId: brewery.id })
+    setActiveCrawlId('')
+    setTab('map')
   }
 
   if (view === 'admin') {
@@ -47,6 +50,7 @@ function App() {
     <div className="app">
       <TopBar
         selectedCity={selectedCity}
+        view={view}
         onOpenAdmin={() => setView('admin')}
         onOpenAbout={() => setView('about')}
         onOpenReportForm={() => setShowReportForm(true)}
@@ -77,7 +81,9 @@ function App() {
             onTabChange={setTab}
             activeCrawlId={activeCrawlId}
             onActiveCrawlIdChange={setActiveCrawlId}
-            onSelectCrawl={handleSelectCrawl}
+            mapFocusRequest={mapFocusRequest}
+            onMapFocusHandled={() => setMapFocusRequest(null)}
+            onSelectBrewery={handleSelectBrewery}
           />
         )}
       </div>

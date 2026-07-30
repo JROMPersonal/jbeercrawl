@@ -2,8 +2,6 @@ function AboutPage({ onOpenReportForm }) {
   return (
     <main className="city-panel">
       <div className="city-panel__content about-page">
-        <h1 className="about-page__title">About JBeer Crawl</h1>
-
         <p>
           JBeer Crawl helps you plan a visit around multiple breweries in a
           city - your hometown or somewhere new. Pick a city, browse its

@@ -1,19 +1,22 @@
 import { useState } from 'react'
 import { createCrawl } from '../api/crawls'
 import BreweryPathList from './BreweryPathList'
+import CrawlPickerMap from './CrawlPickerMap'
 
 function AddCrawlForm({
   cityId,
+  cityName,
   breweries,
   breweriesStatus,
   initialOrderedIds,
+  initialTab,
   onClose,
   onCreated,
 }) {
   const [name, setName] = useState('')
   const [creatorName, setCreatorName] = useState('')
   const [orderedIds, setOrderedIds] = useState(() => initialOrderedIds ?? [])
-  const [activeTab, setActiveTab] = useState('breweries')
+  const [activeTab, setActiveTab] = useState(initialTab ?? 'breweries')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
@@ -59,11 +62,12 @@ function AddCrawlForm({
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <form
-        className="modal"
+        className="modal modal--add-crawl"
         onClick={(event) => event.stopPropagation()}
         onSubmit={handleSubmit}
       >
         <h3 className="modal__title">Add a JBeer Crawl</h3>
+        {cityName && <p className="modal__subtitle">for {cityName}</p>}
 
         <label className="field">
           <span className="field__label">Crawl name</span>
@@ -86,7 +90,7 @@ function AddCrawlForm({
           />
         </label>
 
-        <div className="field">
+        <div className="field crawl-form__tabs-field">
           <div className="tab-bar tab-bar--modal">
             <button
               type="button"
@@ -97,6 +101,13 @@ function AddCrawlForm({
             </button>
             <button
               type="button"
+              className={`tab-bar__button${activeTab === 'map' ? ' tab-bar__button--active' : ''}`}
+              onClick={() => setActiveTab('map')}
+            >
+              Map
+            </button>
+            <button
+              type="button"
               className={`tab-bar__button${activeTab === 'path' ? ' tab-bar__button--active' : ''}`}
               onClick={() => setActiveTab('path')}
             >
@@ -104,43 +115,69 @@ function AddCrawlForm({
             </button>
           </div>
 
-          {activeTab === 'breweries' && (
-            <>
-              {breweriesStatus === 'loading' && (
-                <p className="city-panel__message">Loading breweries…</p>
-              )}
-              {breweriesStatus === 'error' && (
-                <p className="city-panel__message">Couldn't load the brewery list.</p>
-              )}
+          <div className="crawl-form__tab-panel">
+            {activeTab === 'breweries' && (
+              <>
+                {breweriesStatus === 'loading' && (
+                  <p className="city-panel__message">Loading breweries…</p>
+                )}
+                {breweriesStatus === 'error' && (
+                  <p className="city-panel__message">Couldn't load the brewery list.</p>
+                )}
 
-              {breweriesStatus === 'ready' && (
-                <div className="brewery-picker">
-                  {breweries.map((brewery) => (
-                    <label key={brewery.id} className="brewery-picker__item">
-                      <input
-                        type="checkbox"
-                        checked={orderedIds.includes(brewery.id)}
-                        onChange={() => toggleBrewery(brewery.id)}
-                      />
-                      {brewery.name}
-                    </label>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+                {breweriesStatus === 'ready' && (
+                  <div className="brewery-picker">
+                    {breweries.map((brewery) => (
+                      <label key={brewery.id} className="brewery-picker__item">
+                        <input
+                          type="checkbox"
+                          checked={orderedIds.includes(brewery.id)}
+                          onChange={() => toggleBrewery(brewery.id)}
+                        />
+                        {brewery.name}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
 
-          {activeTab === 'path' &&
-            (orderedBreweries.length === 0 ? (
-              <p className="city-panel__message">
-                Select breweries first, then drag to set the crawl order here.
-              </p>
-            ) : (
-              <BreweryPathList
-                orderedBreweries={orderedBreweries}
-                onReorder={setOrderedIds}
-              />
-            ))}
+            {activeTab === 'map' && (
+              <>
+                {breweriesStatus === 'loading' && (
+                  <p className="city-panel__message">Loading breweries…</p>
+                )}
+                {breweriesStatus === 'error' && (
+                  <p className="city-panel__message">Couldn't load the brewery list.</p>
+                )}
+
+                {breweriesStatus === 'ready' && (
+                  <>
+                    <p className="field__hint">
+                      Click a brewery on the map to add or remove it from this crawl.
+                    </p>
+                    <CrawlPickerMap
+                      breweries={breweries}
+                      selectedIds={orderedIds}
+                      onToggle={toggleBrewery}
+                    />
+                  </>
+                )}
+              </>
+            )}
+
+            {activeTab === 'path' &&
+              (orderedBreweries.length === 0 ? (
+                <p className="city-panel__message">
+                  Select breweries first, then drag to set the crawl order here.
+                </p>
+              ) : (
+                <BreweryPathList
+                  orderedBreweries={orderedBreweries}
+                  onReorder={setOrderedIds}
+                />
+              ))}
+          </div>
         </div>
 
         {error && <p className="modal__error">{error}</p>}

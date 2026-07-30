@@ -13,7 +13,7 @@ function CrawlCard({ crawl, onSelect }) {
       tabIndex={0}
       onClick={() => onSelect(crawl)}
       onKeyDown={handleKeyDown}
-      title="View this crawl's route on the map"
+      title="View this crawl's breweries and route"
     >
       <div className="crawl-card__header">
         <h3 className="crawl-card__name">{crawl.name}</h3>

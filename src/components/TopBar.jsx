@@ -3,6 +3,7 @@ import AdminGearButton from './AdminGearButton'
 
 function TopBar({
   selectedCity,
+  view,
   onOpenAdmin,
   onOpenAbout,
   onOpenReportForm,
@@ -33,10 +34,14 @@ function TopBar({
       </div>
 
       <div className="top-bar__main">
-        {selectedCity && (
-          <h2 className="top-bar__city-name">
-            {selectedCity.name}, {selectedCity.stateAbbr}
-          </h2>
+        {view === 'about' ? (
+          <h2 className="top-bar__city-name">About JBeer Crawl</h2>
+        ) : (
+          selectedCity && (
+            <h2 className="top-bar__city-name">
+              {selectedCity.name}, {selectedCity.stateAbbr}
+            </h2>
+          )
         )}
 
         <div className="top-bar__right">
