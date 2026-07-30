@@ -1,20 +1,15 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
-import { TILE_URL, TILE_ATTRIBUTION, toPosition, formatAddress } from '../utils/leafletSetup'
+import { TILE_URL, TILE_ATTRIBUTION, formatAddress } from '../utils/leafletSetup'
 import { isSafeUrl } from '../utils/safeUrl'
+import { useLocatedBreweries } from '../hooks/useLocatedBreweries'
 import MapFitBounds from './MapFitBounds'
 
 function UsaMapTab({ breweries, status }) {
   const [panSignal, setPanSignal] = useState(0)
 
-  const located = useMemo(
-    () =>
-      breweries
-        .map((brewery) => ({ brewery, position: toPosition(brewery) }))
-        .filter((entry) => entry.position !== null),
-    [breweries],
-  )
+  const located = useLocatedBreweries(breweries)
 
   if (status === 'loading' || status === 'idle') {
     return <p className="city-panel__message">Loading breweries from every city…</p>

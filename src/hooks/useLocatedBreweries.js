@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toPosition } from '../utils/leafletSetup'
 import { geocodeBrewery } from '../utils/geocode'
 
@@ -39,7 +39,16 @@ export function useLocatedBreweries(breweries) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unresolvedIds])
 
-  return breweries
-    .map((brewery) => ({ brewery, position: toPosition(brewery) ?? geocoded[brewery.id] }))
-    .filter((entry) => entry.position)
+  // Memoized so consumers (which build routes/legs off this) get a stable
+  // reference across unrelated re-renders (e.g. hover state on the map) -
+  // otherwise every render would look like "the breweries changed" and
+  // retrigger the driving-route fetch, which is why the loading icon was
+  // showing almost constantly.
+  return useMemo(
+    () =>
+      breweries
+        .map((brewery) => ({ brewery, position: toPosition(brewery) ?? geocoded[brewery.id] }))
+        .filter((entry) => entry.position),
+    [breweries, geocoded],
+  )
 }
