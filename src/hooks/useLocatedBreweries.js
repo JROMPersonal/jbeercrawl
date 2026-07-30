@@ -13,15 +13,20 @@ import { geocodeBrewery } from '../utils/geocode'
 export function useLocatedBreweries(breweries) {
   const [geocoded, setGeocoded] = useState({})
 
-  const unresolvedIds = breweries
-    .filter((brewery) => !toPosition(brewery) && !(brewery.id in geocoded))
-    .map((brewery) => brewery.id)
-    .join(',')
-
   useEffect(() => {
-    if (!unresolvedIds) return
-    const idSet = new Set(unresolvedIds.split(','))
-    const targets = breweries.filter((brewery) => idSet.has(brewery.id))
+    // Snapshot exactly what needs geocoding for this breweries list once,
+    // up front, and work through that fixed batch to completion. Depending
+    // on `geocoded` here (so this effect reruns after every single
+    // resolution) seems appealing but backfires: each rerun cancels the
+    // in-progress loop and starts a new one from the current brewery
+    // onward, which re-issues a lookup for whatever was already in flight -
+    // for N unresolved breweries that multiplies into a much longer queue
+    // than N real requests, badly delaying whichever one is queued last.
+    const targets = breweries.filter(
+      (brewery) => !toPosition(brewery) && !(brewery.id in geocoded),
+    )
+    if (targets.length === 0) return
+
     let cancelled = false
 
     ;(async () => {
@@ -35,9 +40,9 @@ export function useLocatedBreweries(breweries) {
     return () => {
       cancelled = true
     }
-    // Only the set of ids actually needing a lookup should retrigger this.
+    // Only `breweries` itself should retrigger this - see above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unresolvedIds])
+  }, [breweries])
 
   // Memoized so consumers (which build routes/legs off this) get a stable
   // reference across unrelated re-renders (e.g. hover state on the map) -

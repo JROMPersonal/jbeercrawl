@@ -1,4 +1,4 @@
-const CACHE_PREFIX = 'jbeercrawl:geocode:v1:'
+const CACHE_PREFIX = 'jbeercrawl:geocode:v2:'
 
 // Nominatim's usage policy caps requests at 1/sec - this serializes every
 // geocode call app-wide (regardless of how many components ask at once)
