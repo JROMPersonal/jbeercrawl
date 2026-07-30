@@ -9,7 +9,7 @@ import MapFitBounds from './MapFitBounds'
 function UsaMapTab({ breweries, status }) {
   const [panSignal, setPanSignal] = useState(0)
 
-  const located = useLocatedBreweries(breweries)
+  const { located, pendingCount } = useLocatedBreweries(breweries)
 
   if (status === 'loading' || status === 'idle') {
     return <p className="city-panel__message">Loading breweries from every city…</p>
@@ -32,6 +32,14 @@ function UsaMapTab({ breweries, status }) {
       <p className="map-tab__note">
         Showing {located.length} breweries across {cityCount} cit{cityCount === 1 ? 'y' : 'ies'}.
       </p>
+
+      {pendingCount > 0 && (
+        <p className="map-tab__note">
+          Still locating {pendingCount} more brewer{pendingCount === 1 ? 'y' : 'ies'} missing
+          coordinates - free geocoding is rate-limited, so this can take a little while. They'll
+          appear here as they're found.
+        </p>
+      )}
 
       <div className="map-tab__container">
         <button

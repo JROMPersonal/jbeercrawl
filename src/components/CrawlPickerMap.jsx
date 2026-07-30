@@ -18,7 +18,7 @@ function stopIcon(number) {
 function CrawlPickerMap({ breweries, selectedIds, onToggle }) {
   const [hoveredBreweryId, setHoveredBreweryId] = useState(null)
 
-  const located = useLocatedBreweries(breweries)
+  const { located } = useLocatedBreweries(breweries)
 
   if (located.length === 0) {
     return (

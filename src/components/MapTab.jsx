@@ -90,7 +90,7 @@ function MapTab({
   const markerRefs = useRef({})
   const isMobile = useIsMobile()
 
-  const located = useLocatedBreweries(breweries)
+  const { located } = useLocatedBreweries(breweries)
   const locatedById = useMemo(() => {
     const map = new Map()
     for (const entry of located) map.set(entry.brewery.id, entry)
