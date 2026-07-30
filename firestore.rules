@@ -59,6 +59,26 @@ service cloud.firestore {
       allow update, delete: if request.auth != null;
     }
 
+    // Shared cache of brewery geocode results (falls back to a free
+    // geocoding service when Open Brewery DB has no lat/lng on file) —
+    // this is derived/computed data, not user content, so any visitor can
+    // both read it and write a new entry. Only the FIRST write per brewery
+    // is allowed through (update is admin-only) so one client can't
+    // overwrite another's already-cached result.
+    match /geocodeCache/{breweryId} {
+      allow read: if true;
+      allow create: if request.resource.data.position == null
+                    || (request.resource.data.position is list
+                        && request.resource.data.position.size() == 2
+                        && request.resource.data.position[0] is number
+                        && request.resource.data.position[0] >= -90
+                        && request.resource.data.position[0] <= 90
+                        && request.resource.data.position[1] is number
+                        && request.resource.data.position[1] >= -180
+                        && request.resource.data.position[1] <= 180);
+      allow update, delete: if request.auth != null;
+    }
+
     // Reports may contain a reporter's contact email, so unlike everything
     // else in this app, they are NOT publicly readable — only the admin
     // (signed in via Firebase Auth) can view, resolve, or delete them.

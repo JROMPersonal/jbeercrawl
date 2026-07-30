@@ -1,3 +1,6 @@
+import { isFirebaseConfigured } from '../firebase'
+import { readSharedGeocodeCache, writeSharedGeocodeCache } from '../api/geocodeCache'
+
 const CACHE_PREFIX = 'jbeercrawl:geocode:v3:'
 const REQUEST_TIMEOUT_MS = 8000
 
@@ -66,9 +69,14 @@ function writeCache(key, value) {
 /**
  * Geocodes a brewery's street address to a [lat, lng] position via Photon
  * (komoot's free OSM-based geocoding service, no API key required), for
- * breweries Open Brewery DB doesn't have coordinates on file for. Results
- * (including "not found") are cached in localStorage so the same brewery
- * is never looked up twice.
+ * breweries Open Brewery DB doesn't have coordinates on file for.
+ *
+ * Checked in order: this browser's localStorage cache, then the shared
+ * Firestore cache (so once anyone has looked a brewery up, every visitor
+ * gets it from our own database instead of re-querying Photon), then
+ * Photon itself as a last resort. Results (including "not found") are
+ * written back to both caches, so the same brewery is never looked up
+ * twice by this browser, and at most once across all visitors.
  * @param {{ id: string, street?: string, city?: string, state_province?: string, postal_code?: string, country?: string }} brewery
  * @returns {Promise<[number, number] | null>}
  */
@@ -76,9 +84,22 @@ export async function geocodeBrewery(brewery) {
   const cached = readCache(brewery.id)
   if (cached !== undefined) return cached
 
+  if (isFirebaseConfigured) {
+    try {
+      const shared = await readSharedGeocodeCache(brewery.id)
+      if (shared !== undefined) {
+        writeCache(brewery.id, shared)
+        return shared
+      }
+    } catch {
+      // Firestore read failed - fall through to geocoding directly.
+    }
+  }
+
   const query = buildAddressQuery(brewery)
   if (!query) {
     writeCache(brewery.id, null)
+    if (isFirebaseConfigured) writeSharedGeocodeCache(brewery.id, null)
     return null
   }
 
@@ -94,6 +115,9 @@ export async function geocodeBrewery(brewery) {
     })
 
     writeCache(brewery.id, position)
+    // Not awaited - the caller already has its answer; this just shares it
+    // with future visitors in the background.
+    if (isFirebaseConfigured) writeSharedGeocodeCache(brewery.id, position)
     return position
   } catch {
     // Don't cache network failures - worth retrying on a future visit.
