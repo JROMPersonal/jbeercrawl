@@ -1,10 +1,17 @@
 import { useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
+import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import { TILE_URL, TILE_ATTRIBUTION, formatAddress } from '../utils/leafletSetup'
 import { isSafeUrl } from '../utils/safeUrl'
 import { useLocatedBreweries } from '../hooks/useLocatedBreweries'
 import MapFitBounds from './MapFitBounds'
+
+// Below this zoom, breweries stay grouped into numbered clusters that split
+// into smaller clusters as you zoom in; at this zoom and beyond (roughly a
+// single-city view, matching the zoom level city maps open at) clustering
+// turns off entirely and every brewery gets its own marker.
+const DISABLE_CLUSTERING_AT_ZOOM = 11
 
 function UsaMapTab({ breweries, status }) {
   const [panSignal, setPanSignal] = useState(0)
@@ -60,24 +67,30 @@ function UsaMapTab({ breweries, status }) {
               render. */}
           <MapFitBounds bounds={bounds} triggerKey={`${panSignal}::${located.length}`} />
 
-          {located.map(({ brewery, position }) => (
-            <Marker key={brewery.id} position={position}>
-              <Popup>
-                <strong>{brewery.name}</strong>
-                <div>
-                  {brewery.cityName}, {brewery.cityStateAbbr}
-                </div>
-                {formatAddress(brewery) && <div>{formatAddress(brewery)}</div>}
-                {isSafeUrl(brewery.website_url) && (
+          <MarkerClusterGroup
+            disableClusteringAtZoom={DISABLE_CLUSTERING_AT_ZOOM}
+            spiderfyOnMaxZoom={false}
+            showCoverageOnHover={false}
+          >
+            {located.map(({ brewery, position }) => (
+              <Marker key={brewery.id} position={position}>
+                <Popup>
+                  <strong>{brewery.name}</strong>
                   <div>
-                    <a href={brewery.website_url} target="_blank" rel="noreferrer">
-                      Website ↗
-                    </a>
+                    {brewery.cityName}, {brewery.cityStateAbbr}
                   </div>
-                )}
-              </Popup>
-            </Marker>
-          ))}
+                  {formatAddress(brewery) && <div>{formatAddress(brewery)}</div>}
+                  {isSafeUrl(brewery.website_url) && (
+                    <div>
+                      <a href={brewery.website_url} target="_blank" rel="noreferrer">
+                        Website ↗
+                      </a>
+                    </div>
+                  )}
+                </Popup>
+              </Marker>
+            ))}
+          </MarkerClusterGroup>
         </MapContainer>
       </div>
     </div>

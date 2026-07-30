@@ -1,3 +1,5 @@
+import { EXCLUDED_BREWERY_IDS } from '../data/excludedBreweries'
+
 const BASE_URL = 'https://api.openbrewerydb.org/v1/breweries'
 
 /**
@@ -18,5 +20,6 @@ export async function fetchBreweriesForCity(city) {
     throw new Error(`Open Brewery DB request failed (${response.status})`)
   }
 
-  return response.json()
+  const data = await response.json()
+  return data.filter((brewery) => !EXCLUDED_BREWERY_IDS.has(brewery.id))
 }

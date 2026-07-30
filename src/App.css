@@ -1258,6 +1258,46 @@
   filter: brightness(0.55) saturate(0.7);
 }
 
+/* Recolor the default marker-cluster bubbles (normally green/yellow/orange)
+   to the app's own accent color, in three opacities so bigger clusters
+   still read as visually "heavier" than small ones. */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.marker-cluster-small div {
+  background-color: color-mix(in srgb, var(--accent) 82%, transparent);
+}
+
+.marker-cluster-medium div {
+  background-color: color-mix(in srgb, var(--accent) 92%, transparent);
+}
+
+.marker-cluster-large div {
+  background-color: var(--accent);
+}
+
+.marker-cluster div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.marker-cluster div span {
+  line-height: normal;
+}
+
+.marker-cluster:hover div {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35), 0 0 0 6px var(--accent-bg), 0 0 18px var(--accent);
+  transform: scale(1.1);
+}
+
 .map-tab__auto-pan {
   position: absolute;
   top: 10px;
