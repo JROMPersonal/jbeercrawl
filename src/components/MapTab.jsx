@@ -353,7 +353,10 @@ function MapTab({
 
         <MapContainer center={initialCenter} zoom={12} scrollWheelZoom>
           <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
-          <MapFitBounds bounds={activeBounds} triggerKey={`${activeCrawlId}::${panSignal}`} />
+          <MapFitBounds
+            bounds={activeBounds}
+            triggerKey={`${activeCrawlId}::${panSignal}::${located.length}`}
+          />
           <CloseOnMapClick onClose={() => setOpenLegKey(null)} />
 
           {regularMarkers.map(({ brewery, position }) => (

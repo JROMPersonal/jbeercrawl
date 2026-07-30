@@ -807,7 +807,11 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  z-index: 10;
+  /* Must beat .top-bar's z-index: 15 (sticky, always on screen) - otherwise
+     the top bar renders over the top of any modal that ends up positioned
+     underneath it, hiding whatever's there (e.g. a modal anchored to the
+     top of the viewport on mobile). */
+  z-index: 20;
 }
 
 .modal {
@@ -1476,24 +1480,21 @@
     height: 50vh;
   }
 
-  /* On mobile the modal scrolls as one normal page (rather than trying to
-     pin its height to the viewport with vh units, which is unreliable on
-     mobile browsers whose address bar grows/shrinks the visible area) -
-     the crawl name and Crawl Breweries/Crawl Map tabs stay pinned via
-     `position: sticky` so they're always visible no matter how long the
-     brewery list scrolls. */
+  /* `dvh` (dynamic viewport height) tracks the actually-visible viewport as
+     mobile browsers grow/shrink their address bar - plain `vh` is measured
+     against the larger, address-bar-hidden viewport, which could render
+     the modal taller than what's currently on screen and push its own
+     content out the bottom with nowhere to scroll to. The crawl name/tabs
+     live in a plain (non-scrolling) block above the body; the body is the
+     only thing that scrolls, so they're always visible no matter how long
+     the brewery list is. */
   .modal--crawl-detail {
-    height: auto;
-    max-height: 90vh;
-    overflow-y: auto;
+    height: min(700px, 85dvh);
+    overflow: hidden;
   }
 
   .crawl-detail__sticky-top {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    background: var(--panel-bg);
-    padding-bottom: 8px;
+    flex: 0 0 auto;
   }
 
   .crawl-detail__mobile-tabs {
@@ -1502,15 +1503,19 @@
 
   .crawl-detail__body {
     display: block;
+    overflow-y: auto;
   }
 
   .crawl-detail__list {
     overflow-y: visible;
   }
 
+  .crawl-detail__map {
+    height: 100%;
+  }
+
   .crawl-detail__map-container {
-    flex: none;
-    height: 65vh;
+    flex: 1;
     min-height: 280px;
   }
 }

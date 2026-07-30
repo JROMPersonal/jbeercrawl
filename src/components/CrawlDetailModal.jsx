@@ -321,7 +321,7 @@ function CrawlDetailModal({ crawl, cityId, cityName, breweries, breweriesStatus,
 
                     <MapContainer center={bounds.getCenter()} zoom={12} scrollWheelZoom>
                       <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
-                      <MapFitBounds bounds={bounds} triggerKey={crawl.id} />
+                      <MapFitBounds bounds={bounds} triggerKey={`${crawl.id}::${stops.length}`} />
                       <KeepHoveredMarkerVisible hoveredStop={hoveredStop} />
                       <CloseOnMapClick onClose={() => setOpenLegKey(null)} />
 

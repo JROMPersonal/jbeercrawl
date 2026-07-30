@@ -44,7 +44,12 @@ function UsaMapTab({ breweries, status }) {
 
         <MapContainer center={center} zoom={4} scrollWheelZoom>
           <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
-          <MapFitBounds bounds={bounds} triggerKey={panSignal} />
+          {/* located.length is part of the key so the view expands to include
+              breweries that show up later via geocoding (e.g. Niagara Falls,
+              ON is far outside the initial fit around US cities) instead of
+              only ever fitting to whatever was already located on first
+              render. */}
+          <MapFitBounds bounds={bounds} triggerKey={`${panSignal}::${located.length}`} />
 
           {located.map(({ brewery, position }) => (
             <Marker key={brewery.id} position={position}>

@@ -41,7 +41,7 @@ function CrawlPickerMap({ breweries, selectedIds, onToggle }) {
     <div className="crawl-picker-map__container">
       <MapContainer center={bounds.getCenter()} zoom={12} scrollWheelZoom>
         <TileLayer url={TILE_URL} attribution={TILE_ATTRIBUTION} />
-        <MapFitBounds bounds={bounds} triggerKey="picker" />
+        <MapFitBounds bounds={bounds} triggerKey={`picker::${located.length}`} />
 
         {regularMarkers.map(({ brewery, position }) => (
           <Marker
