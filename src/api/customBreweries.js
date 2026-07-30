@@ -69,6 +69,10 @@ export function createCustomBrewery(city, { name, breweryType, street, phone, we
     street: street?.trim() || null,
     city: city.name,
     state_province: city.stateAbbr,
+    // Without this, geocoding an address with an ambiguous state
+    // abbreviation (e.g. "CA" = California or Canada) had nothing to
+    // disambiguate it with - see src/utils/geocode.js.
+    country: city.country,
     postal_code: null,
     phone: phone?.trim() || null,
     website_url: websiteUrl?.trim() || null,

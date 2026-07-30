@@ -11,13 +11,16 @@ import seattleImage from '../assets/cities/seattle-wa.jpg'
 
 // `breweryDbCity` / `breweryDbState` are the query values sent to the
 // Open Brewery DB API (https://www.openbrewerydb.org/), which expects
-// lowercase city/state names.
+// lowercase city/state names. `country` disambiguates state abbreviations
+// that collide with a country code (e.g. "CA" = California or Canada) when
+// geocoding a custom brewery's address (see src/utils/geocode.js).
 export const cities = [
   {
     id: 'redding-ca',
     name: 'Redding',
     state: 'California',
     stateAbbr: 'CA',
+    country: 'United States',
     breweryDbCity: 'redding',
     breweryDbState: 'california',
     image: reddingImage,
@@ -33,6 +36,7 @@ export const cities = [
     name: 'Asheville',
     state: 'North Carolina',
     stateAbbr: 'NC',
+    country: 'United States',
     breweryDbCity: 'asheville',
     breweryDbState: 'north_carolina',
     image: ashevilleImage,
@@ -48,6 +52,7 @@ export const cities = [
     name: 'Atlanta',
     state: 'Georgia',
     stateAbbr: 'GA',
+    country: 'United States',
     breweryDbCity: 'atlanta',
     breweryDbState: 'georgia',
     image: atlantaImage,
@@ -63,6 +68,7 @@ export const cities = [
     name: 'Austin',
     state: 'Texas',
     stateAbbr: 'TX',
+    country: 'United States',
     breweryDbCity: 'austin',
     breweryDbState: 'texas',
     image: austinImage,
@@ -78,6 +84,7 @@ export const cities = [
     name: 'Grass Valley',
     state: 'California',
     stateAbbr: 'CA',
+    country: 'United States',
     breweryDbCity: 'grass_valley',
     breweryDbState: 'california',
     image: grassValleyImage,
@@ -93,6 +100,7 @@ export const cities = [
     name: 'Niagara Falls',
     state: 'Ontario',
     stateAbbr: 'ON',
+    country: 'Canada',
     breweryDbCity: 'niagara_falls',
     breweryDbState: 'ontario',
     image: niagaraFallsImage,
@@ -108,6 +116,7 @@ export const cities = [
     name: 'Portland',
     state: 'Oregon',
     stateAbbr: 'OR',
+    country: 'United States',
     breweryDbCity: 'portland',
     breweryDbState: 'oregon',
     image: portlandImage,
@@ -123,6 +132,7 @@ export const cities = [
     name: 'San Diego',
     state: 'California',
     stateAbbr: 'CA',
+    country: 'United States',
     breweryDbCity: 'san_diego',
     breweryDbState: 'california',
     image: sanDiegoImage,
@@ -138,6 +148,7 @@ export const cities = [
     name: 'Santa Cruz',
     state: 'California',
     stateAbbr: 'CA',
+    country: 'United States',
     breweryDbCity: 'santa_cruz',
     breweryDbState: 'california',
     image: santaCruzImage,
@@ -153,6 +164,7 @@ export const cities = [
     name: 'Seattle',
     state: 'Washington',
     stateAbbr: 'WA',
+    country: 'United States',
     breweryDbCity: 'seattle',
     breweryDbState: 'washington',
     image: seattleImage,

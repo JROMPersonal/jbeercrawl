@@ -3,6 +3,18 @@ import { db } from '../firebase'
 
 const COLLECTION = 'geocodeCache'
 
+// Bump this if the geocoding query/validation logic changes in a way that
+// could make previously-cached results wrong (e.g. the "CA" = California
+// vs. Canada mixup fixed alongside this). firestore.rules only allows the
+// *first* write per document (see there for why), so a bad entry can't be
+// corrected in place - baking the version into the doc ID instead means a
+// bump just starts writing to fresh, never-before-used documents.
+const CACHE_VERSION = 'v2'
+
+function cacheDocId(breweryId) {
+  return `${breweryId}_${CACHE_VERSION}`
+}
+
 /**
  * Reads a previously-cached geocode result for a brewery, shared across
  * every visitor (not just this browser) - see firestore.rules.
@@ -11,7 +23,7 @@ const COLLECTION = 'geocodeCache'
  *   nothing's cached yet for this brewery
  */
 export async function readSharedGeocodeCache(breweryId) {
-  const snapshot = await getDoc(doc(db, COLLECTION, breweryId))
+  const snapshot = await getDoc(doc(db, COLLECTION, cacheDocId(breweryId)))
   return snapshot.exists() ? snapshot.data().position : undefined
 }
 
@@ -26,7 +38,7 @@ export async function readSharedGeocodeCache(breweryId) {
  */
 export async function writeSharedGeocodeCache(breweryId, position) {
   try {
-    await setDoc(doc(db, COLLECTION, breweryId), {
+    await setDoc(doc(db, COLLECTION, cacheDocId(breweryId)), {
       position,
       updatedAt: serverTimestamp(),
     })

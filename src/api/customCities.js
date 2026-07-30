@@ -37,6 +37,10 @@ export function createCustomCity({ name, state, stateAbbr, image, addedBy }) {
     name: name.trim(),
     state: state.trim(),
     stateAbbr: stateAbbr.trim().toUpperCase(),
+    // The admin "Add a City" form only offers US states (see usStates.js) -
+    // if that ever changes to support other countries, this needs to
+    // become a real field instead of a constant.
+    country: 'United States',
     breweryDbCity: slugify(name),
     breweryDbState: slugify(state),
     image: image?.trim() || null,

@@ -1,8 +1,23 @@
 import { isFirebaseConfigured } from '../firebase'
 import { readSharedGeocodeCache, writeSharedGeocodeCache } from '../api/geocodeCache'
 
-const CACHE_PREFIX = 'jbeercrawl:geocode:v3:'
+const CACHE_PREFIX = 'jbeercrawl:geocode:v4:'
 const REQUEST_TIMEOUT_MS = 8000
+
+// So a query like "..., CA" isn't wrongly matched against Canada instead of
+// California - both the country name Photon returns and our own brewery
+// records need to agree on the same spelling before comparing them.
+const COUNTRY_ALIASES = {
+  usa: 'united states',
+  us: 'united states',
+  'united states of america': 'united states',
+}
+
+function normalizeCountry(value) {
+  if (!value) return null
+  const key = value.trim().toLowerCase()
+  return COUNTRY_ALIASES[key] ?? key
+}
 
 // Photon (komoot's free OSM-based geocoder) has no documented per-second
 // cap like Nominatim's - a handful of rapid back-to-back requests all came
@@ -110,8 +125,19 @@ export async function geocodeBrewery(brewery) {
       if (!response.ok) throw new Error('geocoding request failed')
 
       const data = await response.json()
-      const [lng, lat] = data.features?.[0]?.geometry?.coordinates ?? []
-      return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null
+      const feature = data.features?.[0]
+      const [lng, lat] = feature?.geometry?.coordinates ?? []
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+
+      // Guard against a wrong-country match (e.g. an ambiguous state
+      // abbreviation like "CA" resolving to Canada instead of California) -
+      // if we know what country to expect and Photon's result disagrees,
+      // treat it as not found rather than trusting a clearly bad match.
+      const expected = normalizeCountry(brewery.country)
+      const actual = normalizeCountry(feature?.properties?.country)
+      if (expected && actual && expected !== actual) return null
+
+      return [lat, lng]
     })
 
     writeCache(brewery.id, position)
