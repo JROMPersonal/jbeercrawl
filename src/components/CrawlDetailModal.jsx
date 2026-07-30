@@ -164,54 +164,56 @@ function CrawlDetailModal({ crawl, cityId, cityName, breweries, breweriesStatus,
     <>
       <div className="modal-backdrop" onClick={onClose}>
         <div className="modal modal--crawl-detail" onClick={(event) => event.stopPropagation()}>
-          <div className="crawl-detail__header">
-            <div className="crawl-detail__header-main">
-              <div className="crawl-detail__title-block">
-                <h3 className="modal__title">{crawl.name}</h3>
-                <p className="crawl-detail__creator">by {crawl.creatorName || 'Anonymous'}</p>
+          <div className="crawl-detail__sticky-top">
+            <div className="crawl-detail__header">
+              <div className="crawl-detail__header-main">
+                <div className="crawl-detail__title-block">
+                  <h3 className="modal__title">{crawl.name}</h3>
+                  <p className="crawl-detail__creator">by {crawl.creatorName || 'Anonymous'}</p>
+                </div>
+                <button
+                  type="button"
+                  className="button"
+                  onClick={() => setShowStartFromForm(true)}
+                >
+                  Start New Crawl
+                </button>
               </div>
-              <button
-                type="button"
-                className="button"
-                onClick={() => setShowStartFromForm(true)}
-              >
-                Start New Crawl
+              <button type="button" className="modal__close" onClick={onClose} aria-label="Close">
+                ×
               </button>
             </div>
-            <button type="button" className="modal__close" onClick={onClose} aria-label="Close">
-              ×
-            </button>
+
+            {skippedStops > 0 && (
+              <p className="map-tab__note">
+                {skippedStops} stop{skippedStops === 1 ? '' : 's'} in this crawl couldn't be
+                located on the map.
+              </p>
+            )}
+
+            {isMobile && (
+              <div className="tab-bar tab-bar--modal crawl-detail__mobile-tabs">
+                <button
+                  type="button"
+                  className={`tab-bar__button${
+                    mobileTab === 'breweries' ? ' tab-bar__button--active' : ''
+                  }`}
+                  onClick={() => setMobileTab('breweries')}
+                >
+                  Crawl Breweries
+                </button>
+                <button
+                  type="button"
+                  className={`tab-bar__button${
+                    mobileTab === 'map' ? ' tab-bar__button--active' : ''
+                  }`}
+                  onClick={() => setMobileTab('map')}
+                >
+                  Crawl Map
+                </button>
+              </div>
+            )}
           </div>
-
-          {skippedStops > 0 && (
-            <p className="map-tab__note">
-              {skippedStops} stop{skippedStops === 1 ? '' : 's'} in this crawl couldn't be
-              located on the map.
-            </p>
-          )}
-
-          {isMobile && (
-            <div className="tab-bar tab-bar--modal crawl-detail__mobile-tabs">
-              <button
-                type="button"
-                className={`tab-bar__button${
-                  mobileTab === 'breweries' ? ' tab-bar__button--active' : ''
-                }`}
-                onClick={() => setMobileTab('breweries')}
-              >
-                Crawl Breweries
-              </button>
-              <button
-                type="button"
-                className={`tab-bar__button${
-                  mobileTab === 'map' ? ' tab-bar__button--active' : ''
-                }`}
-                onClick={() => setMobileTab('map')}
-              >
-                Crawl Map
-              </button>
-            </div>
-          )}
 
           <div className="crawl-detail__body">
             {(!isMobile || mobileTab === 'breweries') && (

@@ -868,6 +868,12 @@
   overflow: hidden;
 }
 
+.crawl-detail__sticky-top {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .crawl-detail__header {
   display: flex;
   align-items: flex-start;
@@ -1455,19 +1461,56 @@
     padding: 18px;
   }
 
+  /* Center-aligning a modal that ends up taller than the actually-visible
+     viewport (mobile browsers' address bars grow/shrink it, so max-height
+     calculated in vh isn't fully reliable) pushes its top - header, title,
+     tabs - up past the top of the screen with no way to scroll back to it.
+     Anchoring to the top instead means the top of any modal is always
+     exactly where the viewport begins. */
+  .modal-backdrop {
+    align-items: flex-start;
+    padding-top: 24px;
+  }
+
   .map-tab__container {
     height: 50vh;
   }
 
-  /* Only one of the list/map panes renders at a time on mobile (switched
-     via the Crawl Breweries / Crawl Map tabs), so let it fill the full
-     body instead of splitting the space with an empty second row. */
-  .crawl-detail__body {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr);
+  /* On mobile the modal scrolls as one normal page (rather than trying to
+     pin its height to the viewport with vh units, which is unreliable on
+     mobile browsers whose address bar grows/shrinks the visible area) -
+     the crawl name and Crawl Breweries/Crawl Map tabs stay pinned via
+     `position: sticky` so they're always visible no matter how long the
+     brewery list scrolls. */
+  .modal--crawl-detail {
+    height: auto;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .crawl-detail__sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--panel-bg);
+    padding-bottom: 8px;
   }
 
   .crawl-detail__mobile-tabs {
-    margin-bottom: 12px;
+    margin-bottom: 0;
+  }
+
+  .crawl-detail__body {
+    display: block;
+  }
+
+  .crawl-detail__list {
+    overflow-y: visible;
+  }
+
+  .crawl-detail__map-container {
+    flex: none;
+    height: 65vh;
+    min-height: 280px;
   }
 }
