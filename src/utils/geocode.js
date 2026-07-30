@@ -1,7 +1,7 @@
 import { isFirebaseConfigured } from '../firebase'
 import { readSharedGeocodeCache, writeSharedGeocodeCache } from '../api/geocodeCache'
 
-const CACHE_PREFIX = 'jbeercrawl:geocode:v4:'
+const CACHE_PREFIX = 'jbeercrawl:geocode:v5:'
 const REQUEST_TIMEOUT_MS = 8000
 
 // So a query like "..., CA" isn't wrongly matched against Canada instead of
@@ -17,6 +17,11 @@ function normalizeCountry(value) {
   if (!value) return null
   const key = value.trim().toLowerCase()
   return COUNTRY_ALIASES[key] ?? key
+}
+
+function normalizeText(value) {
+  if (!value) return null
+  return value.trim().toLowerCase()
 }
 
 // Photon (komoot's free OSM-based geocoder) has no documented per-second
@@ -133,9 +138,19 @@ export async function geocodeBrewery(brewery) {
       // abbreviation like "CA" resolving to Canada instead of California) -
       // if we know what country to expect and Photon's result disagrees,
       // treat it as not found rather than trusting a clearly bad match.
-      const expected = normalizeCountry(brewery.country)
-      const actual = normalizeCountry(feature?.properties?.country)
-      if (expected && actual && expected !== actual) return null
+      const expectedCountry = normalizeCountry(brewery.country)
+      const actualCountry = normalizeCountry(feature?.properties?.country)
+      if (expectedCountry && actualCountry && expectedCountry !== actualCountry) return null
+
+      // Photon does fuzzy relevance matching - a brewery with no actual OSM
+      // presence (common for small independent ones, especially custom
+      // breweries added through this app) can still return a "result": some
+      // unrelated but similarly-worded business, sometimes in a different
+      // city entirely. If we know the expected city and it doesn't match,
+      // that's a clear enough signal to discard the match rather than trust it.
+      const expectedCity = normalizeText(brewery.city)
+      const actualCity = normalizeText(feature?.properties?.city)
+      if (expectedCity && actualCity && expectedCity !== actualCity) return null
 
       return [lat, lng]
     })

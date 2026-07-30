@@ -90,7 +90,7 @@ function MapTab({
   const markerRefs = useRef({})
   const isMobile = useIsMobile()
 
-  const { located } = useLocatedBreweries(breweries)
+  const { located, pendingCount } = useLocatedBreweries(breweries)
   const locatedById = useMemo(() => {
     const map = new Map()
     for (const entry of located) map.set(entry.brewery.id, entry)
@@ -186,7 +186,9 @@ function MapTab({
   if (located.length === 0) {
     return (
       <p className="city-panel__message">
-        No breweries with location data to show on the map yet.
+        {pendingCount > 0
+          ? `Still trying to locate ${pendingCount} brewer${pendingCount === 1 ? 'y' : 'ies'}…`
+          : "Couldn't find a reliable map location for any breweries here yet."}
       </p>
     )
   }
@@ -279,8 +281,18 @@ function MapTab({
 
       {missingCount > 0 && (
         <p className="map-tab__note">
-          {missingCount} of {breweries.length} breweries don't have location data
-          and aren't shown on the map.
+          {missingCount - pendingCount > 0 && (
+            <>
+              Couldn't find a reliable map location for {missingCount - pendingCount} of{' '}
+              {breweries.length} breweries, so {missingCount - pendingCount === 1 ? "it isn't" : "they aren't"}{' '}
+              shown on the map.{' '}
+            </>
+          )}
+          {pendingCount > 0 && (
+            <>
+              Still trying to locate {pendingCount} more brewer{pendingCount === 1 ? 'y' : 'ies'}…
+            </>
+          )}
         </p>
       )}
 

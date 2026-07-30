@@ -18,7 +18,9 @@ function UsaMapTab({ breweries, status }) {
   if (located.length === 0) {
     return (
       <p className="city-panel__message">
-        No breweries with location data to show yet.
+        {pendingCount > 0
+          ? `Still trying to locate ${pendingCount} brewer${pendingCount === 1 ? 'y' : 'ies'}…`
+          : "Couldn't find a reliable map location for any breweries yet."}
       </p>
     )
   }
@@ -35,9 +37,8 @@ function UsaMapTab({ breweries, status }) {
 
       {pendingCount > 0 && (
         <p className="map-tab__note">
-          Still locating {pendingCount} more brewer{pendingCount === 1 ? 'y' : 'ies'} missing
-          coordinates - free geocoding is rate-limited, so this can take a little while. They'll
-          appear here as they're found.
+          Still trying to locate {pendingCount} more brewer{pendingCount === 1 ? 'y' : 'ies'}{' '}
+          missing coordinates - they'll appear here if a reliable match is found.
         </p>
       )}
 

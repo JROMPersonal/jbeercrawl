@@ -18,12 +18,14 @@ function stopIcon(number) {
 function CrawlPickerMap({ breweries, selectedIds, onToggle }) {
   const [hoveredBreweryId, setHoveredBreweryId] = useState(null)
 
-  const { located } = useLocatedBreweries(breweries)
+  const { located, pendingCount } = useLocatedBreweries(breweries)
 
   if (located.length === 0) {
     return (
       <p className="city-panel__message">
-        No breweries with location data to show on the map yet.
+        {pendingCount > 0
+          ? `Still trying to locate ${pendingCount} brewer${pendingCount === 1 ? 'y' : 'ies'}…`
+          : "Couldn't find a reliable map location for any breweries here yet."}
       </p>
     )
   }

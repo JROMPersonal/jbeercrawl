@@ -257,7 +257,7 @@ function CrawlDetailModal({ crawl, cityId, cityName, breweries, breweriesStatus,
                 ))}
                 {stops.length === 0 && (
                   <p className="city-panel__message">
-                    None of this crawl's breweries have location data to show.
+                    Couldn't find a reliable map location for any of this crawl's breweries yet.
                   </p>
                 )}
               </div>
