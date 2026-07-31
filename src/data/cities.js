@@ -12,6 +12,7 @@ import sanDiegoImage from '../assets/cities/san-diego-ca.jpg'
 import sanFranciscoImage from '../assets/cities/san-francisco-ca.jpg'
 import santaCruzImage from '../assets/cities/santa-cruz-ca.jpg'
 import seattleImage from '../assets/cities/seattle-wa.jpg'
+import tampaImage from '../assets/cities/tampa-fl.jpg'
 
 // `breweryDbCity` / `breweryDbState` are the query values sent to the
 // Open Brewery DB API (https://www.openbrewerydb.org/), which expects
@@ -241,6 +242,22 @@ export const cities = [
       url: 'https://commons.wikimedia.org/wiki/File:Downtown_Seattle_skyline_from_Space_Needle_May_2011.JPG',
       license: 'CC BY-SA 3.0',
       licenseUrl: 'https://creativecommons.org/licenses/by-sa/3.0/',
+    },
+  },
+  {
+    id: 'tampa-fl',
+    name: 'Tampa',
+    state: 'Florida',
+    stateAbbr: 'FL',
+    country: 'United States',
+    breweryDbCity: 'tampa',
+    breweryDbState: 'florida',
+    image: tampaImage,
+    imageCredit: {
+      text: 'Trevorrrrvalent',
+      url: 'https://commons.wikimedia.org/wiki/File:Tampa_Skyline_from_Ballast_Point_Park_April_2024.jpg',
+      license: 'CC BY 4.0',
+      licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
     },
   },
 ]
